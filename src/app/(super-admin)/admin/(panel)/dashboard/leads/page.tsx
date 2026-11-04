@@ -3,19 +3,25 @@
 import React, { useState, useEffect } from "react";
 import { 
   FiRefreshCw, 
-  FiMail, 
   FiPhone, 
   FiMapPin, 
   FiCalendar,
   FiFileText,
   FiInbox,
-  FiTrendingUp,
   FiUsers,
   FiDollarSign,
   FiSearch,
   FiMessageSquare
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import type { InquiryDTO, ContactDTO } from "@/types/lead";
 
 type Lead = Partial<InquiryDTO> &
@@ -34,25 +40,37 @@ export default function AdminDashboardLeads() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchLeads = async () => {
-    setLoading(true);
+  const fetchLeadsData = async (): Promise<{ inquiries: InquiryDTO[]; contacts: ContactDTO[] } | null> => {
     try {
       const res = await fetch("/api/admin/leads");
       const data = await res.json();
-      if (data.success) {
-        setInquiries(data.inquiries || []);
-        setContacts(data.contacts || []);
-      }
+      return data.success ? { inquiries: data.inquiries || [], contacts: data.contacts || [] } : null;
     } catch (err) {
       console.error("Failed to fetch leads", err);
-    } finally {
-      setLoading(false);
+      return null;
     }
   };
 
+  const applyLeads = (data: { inquiries: InquiryDTO[]; contacts: ContactDTO[] } | null) => {
+    if (data) {
+      setInquiries(data.inquiries);
+      setContacts(data.contacts);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    fetchLeads();
+    let active = true;
+    fetchLeadsData().then((data) => active && applyLeads(data));
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const fetchLeads = () => {
+    setLoading(true);
+    return fetchLeadsData().then(applyLeads);
+  };
 
   // Combined and sorted by latest
   const combinedLeads: Lead[] = [
@@ -84,285 +102,170 @@ export default function AdminDashboardLeads() {
     .filter((i) => i.paymentStatus === "Completed")
     .reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
+  const tabs = [
+    { id: "all", label: "All Records", count: combinedLeads.length },
+    { id: "inquiries", label: "Inquiries", count: inquiries.length },
+    { id: "contacts", label: "Contact Desk", count: contacts.length },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#FAFBFD] text-slate-900 select-none antialiased p-4 sm:p-8 lg:p-10 transition-all duration-300">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-5 h-[2px] bg-[#f3c251]" />
-              <span className="text-[11px] font-mono font-black uppercase tracking-wider text-[#217044]">
-                CENTRAL ADMIN PANEL
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-[#052516]">
-              BSP Continental Leads Desk
-            </h1>
-          </div>
-
-          <button
-            type="button"
-            onClick={fetchLeads}
-            disabled={loading}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-[#052516] hover:bg-[#217044] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer self-start sm:self-auto disabled:opacity-60"
-          >
-            <FiRefreshCw className={loading ? "animate-spin" : ""} />
-            <span>{loading ? "Syncing..." : "Sync Database"}</span>
-          </button>
+    <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-8">
+      <div className="flex flex-col justify-between gap-4 border-b pb-5 sm:flex-row sm:items-center">
+        <div>
+          <p className="text-xs font-bold tracking-wider text-primary uppercase">Super admin panel</p>
+          <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Leads Desk</h1>
         </div>
-
-        {/* ─── 4 ANALYTIC KPI CARDS ─── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm flex items-center justify-between">
-            <div>
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                Total Submissions
-              </span>
-              <p className="text-3xl font-black font-mono text-[#052516] mt-1">
-                {combinedLeads.length}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#217044] flex items-center justify-center text-xl">
-              <FiUsers />
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm flex items-center justify-between">
-            <div>
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                Service Inquiries
-              </span>
-              <p className="text-3xl font-black font-mono text-amber-700 mt-1">
-                {inquiries.length}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl">
-              <FiFileText />
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm flex items-center justify-between">
-            <div>
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                Contact Messages
-              </span>
-              <p className="text-3xl font-black font-mono text-[#217044] mt-1">
-                {contacts.length}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#217044] flex items-center justify-center text-xl">
-              <FiMessageSquare />
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm flex items-center justify-between">
-            <div>
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                Verified Inflows
-              </span>
-              <p className="text-3xl font-black font-mono text-[#052516] mt-1">
-                ₹{totalRevenue.toLocaleString()}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#217044] flex items-center justify-center text-xl">
-              <FiDollarSign />
-            </div>
-          </div>
-        </div>
-
-        {/* ─── TABS & SEARCH BAR ─── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab("all")}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                activeTab === "all"
-                  ? "bg-[#217044] text-white shadow-sm"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              All Records ({combinedLeads.length})
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("inquiries")}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                activeTab === "inquiries"
-                  ? "bg-[#217044] text-white shadow-sm"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              Inquiries ({inquiries.length})
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("contacts")}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                activeTab === "contacts"
-                  ? "bg-[#217044] text-white shadow-sm"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              Contact Desk ({contacts.length})
-            </button>
-          </div>
-
-          <div className="relative max-w-xs w-full">
-            <FiSearch className="absolute left-3.5 top-3.5 text-slate-400 text-sm" />
-            <input
-              type="text"
-              placeholder="Search name, phone, city..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#217044] transition-all"
-            />
-          </div>
-        </div>
-
-        {/* ─── DATA TABLE WITH ONE-CLICK CALL & WHATSAPP ─── */}
-        {loading ? (
-          <div className="p-20 bg-white rounded-3xl border border-slate-200 text-center space-y-3">
-            <div className="w-9 h-9 border-4 border-[#217044] border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Syncing portal data...</p>
-          </div>
-        ) : displayedLeads.length === 0 ? (
-          <div className="p-20 bg-white rounded-3xl border border-slate-200 text-center space-y-2">
-            <FiInbox className="text-5xl text-slate-300 mx-auto" />
-            <p className="text-sm font-black text-slate-600 uppercase tracking-tight">No submissions found</p>
-            <p className="text-xs text-slate-400">Database me matching records nahi hain.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#FAFBFD] border-b border-slate-200 text-slate-400 font-mono uppercase tracking-wider text-[10px]">
-                  <tr>
-                    <th className="p-4 pl-6">Channel / Source</th>
-                    <th className="p-4">Applicant Profile</th>
-                    <th className="p-4">Target Service</th>
-                    <th className="p-4">Client Query / Notes</th>
-                    <th className="p-4">Amount / Status</th>
-                    <th className="p-4">Direct Action</th>
-                    <th className="p-4 pr-6">Date</th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-100">
-                  {displayedLeads.map((item) => {
-                    const cleanPhone = item.phone ? item.phone.replace(/[^0-9]/g, "") : "";
-                    const whatsappNumber = cleanPhone.startsWith("91") ? cleanPhone : `91${cleanPhone}`;
-
-                    return (
-                      <tr key={item._id} className="hover:bg-slate-50/80 transition-colors">
-                        
-                        {/* Channel Badge */}
-                        <td className="p-4 pl-6 align-top">
-                          <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider font-mono ${
-                            item.sourceType === "Inquiry"
-                              ? "bg-amber-100 text-amber-900 border border-amber-300/60"
-                              : "bg-emerald-100 text-emerald-900 border border-emerald-300/60"
-                          }`}>
-                            {item.sourceType}
-                          </span>
-                        </td>
-
-                        {/* Client Info */}
-                        <td className="p-4 align-top space-y-1">
-                          <p className="font-bold text-slate-900 text-sm leading-snug">{item.name}</p>
-                          <div className="space-y-0.5 text-slate-500 font-mono text-[11px]">
-                            <p className="text-slate-700 font-bold">{item.phone}</p>
-                            {item.email && (
-                              <p className="truncate max-w-[180px] text-slate-400">{item.email}</p>
-                            )}
-                            {item.city && (
-                              <div className="flex items-center gap-1 text-[#217044]">
-                                <FiMapPin size={12} />
-                                <span>{item.city}</span>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Service Required */}
-                        <td className="p-4 align-top">
-                          <span className="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg inline-block text-[11px]">
-                            {item.service}
-                          </span>
-                        </td>
-
-                        {/* Message / Query */}
-                        <td className="p-4 align-top max-w-xs">
-                          <p className="text-slate-600 leading-relaxed line-clamp-3">
-                            {item.message || "—"}
-                          </p>
-                        </td>
-
-                        {/* Amount & Status */}
-                        <td className="p-4 align-top">
-                          {item.sourceType === "Inquiry" ? (
-                            <div className="space-y-1">
-                              <span className="font-mono font-black text-slate-900 text-xs">
-                                ₹{item.amount || 0}
-                              </span>
-                              <span className={`block text-[10px] font-bold uppercase font-mono ${
-                                item.paymentStatus === "Completed" ? "text-emerald-600" : "text-amber-600"
-                              }`}>
-                                {item.paymentStatus || "Pending"}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-[11px] font-mono text-slate-500 uppercase">
-                              Pref: {item.preferredContact || "Call"}
-                            </span>
-                          )}
-                        </td>
-
-                        {/* One-Click Call & WhatsApp Action */}
-                        <td className="p-4 align-top">
-                          <div className="flex items-center gap-2">
-                            <a
-                              href={`tel:${item.phone}`}
-                              className="p-2 rounded-xl bg-emerald-50 hover:bg-[#217044] text-[#217044] hover:text-white transition-all shadow-xs"
-                              title="Call Client Immediately"
-                            >
-                              <FiPhone size={15} />
-                            </a>
-
-                            <a
-                              href={`https://wa.me/${whatsappNumber}?text=Hello%20${encodeURIComponent(item.name || "Client")},%20we%20received%20your%20request%20at%20BSP%20Continental.`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-2 rounded-xl bg-green-50 hover:bg-[#25D366] text-[#25D366] hover:text-white transition-all shadow-xs"
-                              title="Open WhatsApp Chat"
-                            >
-                              <FaWhatsapp size={15} />
-                            </a>
-                          </div>
-                        </td>
-
-                        {/* Date */}
-                        <td className="p-4 pr-6 align-top whitespace-nowrap text-slate-400 font-mono text-[11px]">
-                          <div className="flex items-center gap-1">
-                            <FiCalendar />
-                            <span>{new Date(item.createdAt).toLocaleDateString()}</span>
-                          </div>
-                        </td>
-
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
+        <Button type="button" onClick={fetchLeads} disabled={loading} className="self-start sm:self-auto">
+          <FiRefreshCw className={loading ? "animate-spin" : ""} />
+          {loading ? "Syncing..." : "Sync Database"}
+        </Button>
       </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total Submissions" value={combinedLeads.length} icon={<FiUsers />} />
+        <StatCard label="Service Inquiries" value={inquiries.length} icon={<FiFileText />} tone="amber" />
+        <StatCard label="Contact Messages" value={contacts.length} icon={<FiMessageSquare />} />
+        <StatCard label="Verified Inflows" value={`₹${totalRevenue.toLocaleString("en-IN")}`} icon={<FiDollarSign />} />
+      </div>
+
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          {tabs.map((tab) => (
+            <Button
+              key={tab.id}
+              type="button"
+              size="sm"
+              variant={activeTab === tab.id ? "default" : "outline"}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label} ({tab.count})
+            </Button>
+          ))}
+        </div>
+
+        <div className="relative w-full max-w-xs">
+          <FiSearch aria-hidden className="pointer-events-none absolute top-3 left-3 text-sm text-muted-foreground" />
+          <Input
+            type="search"
+            aria-label="Search leads"
+            placeholder="Search name, phone, city..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      {loading ? (
+        <Card className="gap-3 p-6">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </Card>
+      ) : displayedLeads.length === 0 ? (
+        <Card className="items-center gap-2 p-16 text-center">
+          <FiInbox className="text-5xl text-muted-foreground/50" />
+          <p className="text-sm font-bold">No submissions found</p>
+          <p className="text-xs text-muted-foreground">No records match this view.</p>
+        </Card>
+      ) : (
+        <Card className="gap-0 overflow-hidden py-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
+                <TableHead className="pl-6">Channel</TableHead>
+                <TableHead>Applicant</TableHead>
+                <TableHead>Service</TableHead>
+                <TableHead>Message</TableHead>
+                <TableHead>Amount / Status</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead className="pr-6">Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {displayedLeads.map((item) => {
+                const cleanPhone = item.phone ? item.phone.replace(/[^0-9]/g, "") : "";
+                const whatsappNumber = cleanPhone.startsWith("91") ? cleanPhone : `91${cleanPhone}`;
+                const isInquiry = item.sourceType === "Inquiry";
+
+                return (
+                  <TableRow key={item._id}>
+                    <TableCell className="pl-6 align-top">
+                      <Badge variant={isInquiry ? "warning" : "success"}>{item.sourceType}</Badge>
+                    </TableCell>
+
+                    <TableCell className="space-y-1 align-top">
+                      <p className="text-sm leading-snug font-bold">{item.name}</p>
+                      <div className="space-y-0.5 font-mono text-[11px] text-muted-foreground">
+                        <p className="font-bold text-foreground">{item.phone}</p>
+                        {item.email && <p className="max-w-45 truncate">{item.email}</p>}
+                        {item.city && (
+                          <p className="flex items-center gap-1 text-primary">
+                            <FiMapPin size={12} />
+                            {item.city}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="align-top">
+                      <Badge variant="secondary">{item.service}</Badge>
+                    </TableCell>
+
+                    <TableCell className="max-w-xs align-top">
+                      <p className="line-clamp-3 text-muted-foreground">{item.message || "—"}</p>
+                    </TableCell>
+
+                    <TableCell className="align-top">
+                      {isInquiry ? (
+                        <div className="space-y-1">
+                          <p className="font-mono text-xs font-black">₹{(item.amount || 0).toLocaleString("en-IN")}</p>
+                          <Badge variant={item.paymentStatus === "Completed" ? "success" : "warning"}>
+                            {item.paymentStatus || "Pending"}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <span className="font-mono text-[11px] text-muted-foreground uppercase">
+                          Pref: {item.preferredContact || "Call"}
+                        </span>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="align-top">
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`tel:${item.phone}`}
+                          aria-label={`Call ${item.name}`}
+                          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "size-9 text-primary")}
+                        >
+                          <FiPhone size={15} />
+                        </a>
+                        <a
+                          href={`https://wa.me/${whatsappNumber}?text=Hello%20${encodeURIComponent(item.name || "Client")},%20we%20received%20your%20request%20at%20BSP%20Continental.`}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`WhatsApp ${item.name}`}
+                          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "size-9 text-[#25D366]")}
+                        >
+                          <FaWhatsapp size={15} />
+                        </a>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="pr-6 align-top font-mono text-[11px] whitespace-nowrap text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <FiCalendar />
+                        {new Date(item.createdAt).toLocaleDateString("en-IN")}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
     </div>
   );
 }
