@@ -10,9 +10,11 @@
 
 - [x] **Phase 0 — Security:** secret fallbacks removed (fail closed via `requireEnv`); admin JWT verified in `proxy.ts` and APIs (`requireAdmin`); `requireUser` / ownership scoping on requests, notifications, upload, profile, chat, CIBIL; OTPs in Mongo (hashed, TTL, single use, attempt cap, lockout); sliding-window rate limits + resend cooldowns (`lib/rate-limit.ts`, `lib/otp.ts`); server-side prices (`lib/catalog.ts`) and signature-verified payments; debug routes (`test-db`, `wpotpsend`, unused `verify-otp` / `welcome` / `vetting`) deleted; `.env.example` added; baseline security headers.
 - [x] **Phase 1 — TypeScript:** `tsc --noEmit` clean under `strict`, zero `.js` / `.jsx` in `src/`, `npm run typecheck`.
-- [x] **Phase 2 — Route groups:** `(marketing)`, `(auth)`, `(app)`, `(admin)/admin/(console)` layouts own their chrome; `NavShell` deleted; legacy URLs redirect (`next.config.mjs`); admin status clones merged into `/admin/dashboard/requests?status=`.
+- [x] **Phase 2 — Route groups:** `(landing-page)`, `(auth)`, `(client-app)`, `(super-admin)/admin/(panel)` layouts own their chrome; `NavShell` deleted; legacy URLs redirect (`next.config.mjs`); admin status clones merged into `/admin/dashboard/requests?status=`.
 - [~] **Phase 3 — Domain:** services + repositories for Profile, Request, Notification, Lead, Payment, Auth. Pending: unified `{ error: { code, message } }` response shape (needs a shared client hook), real `/api/admin/users`, TanStack Query hooks.
-- [~] **Phase 4 — UI rebuild / shared kit:** shadcn-style kit in `src/components/ui` (Button, Input, Textarea, Label, Card, Badge, Table, Skeleton, Separator, Dialog; brand tokens in `globals.css`; `components.json` for future `shadcn add`). Converted so far: login, register, forgot-password, admin login, app top bar. **Next:** dashboard forms, `my-requests`, admin requests/leads tables, marketing pages; then TanStack Query hooks (`useRequests`, `useProfile`, `useNotifications`). `shadcn init` itself fails here (npm `allow-scripts` setting), so kit files were written by hand from the base-nova pattern on `@base-ui/react`.
+- [~] **Phase 4 — UI rebuild / shared kit:** shadcn-style kit in `src/components/ui` (Button, Input, Textarea, Label, Card, Badge, Table, Skeleton, Separator, Dialog; brand tokens in `globals.css`; `components.json` for future `shadcn add`). Converted so far: login, register, forgot-password, admin login, client top bar, the four dashboard forms (profile, loan solution, property compliance, credit score) and the new Pricing page. **Next:** `my-requests`, the finance page, super-admin requests/leads/users tables, landing pages; then TanStack Query hooks (`useRequests`, `useProfile`, `useNotifications`). `shadcn init` itself fails here (npm `allow-scripts` setting), so kit files were written by hand from the base-nova pattern on `@base-ui/react`.
+- [x] **Pricing (product change, outside the original plan):** prices are no longer hardcoded. The super admin edits them at `/admin/dashboard/pricing`; the landing page, service pages and the Razorpay charge all read the same value (`PricingService`, `/api/prices`, `ServicePrice` collection; `lib/catalog.ts` only supplies the starting defaults).
+- [x] **Folder rename (readability):** `(marketing)`→`(landing-page)`, `(app)`→`(client-app)`, `(admin)`→`(super-admin)`, same for `components/*`. URLs did not change.
 - [ ] **Phase 5 — Hardening:** CSP, remove mock-data fallbacks in admin users page, strip PII `console.log`s, tests, delete leftover orphans.
 
 **Rotate before deploy** (these values were committed in git history): the Gmail app password, the Resiliohub token that was hard-coded in the removed `wpotpsend` route, the admin password and the JWT secret.
@@ -86,32 +88,27 @@ Admin → bsp_admin_token → MW cookie-exists only; APIs never verify JWT
 ### 3.1 Route groups (App Router)
 
 ```
-src/app/
-  layout.tsx                 # html/body, fonts, providers ONLY — no nav/footer
-  (marketing)/
-    layout.tsx               # MarketingNavbar + Footer
-    page.tsx                 # landing
-    about|contact|services|… 
-  (auth)/
-    layout.tsx               # minimal centered shell — no marketing nav, no app sidebar
-    login|register|forget-password/
-  (app)/                     # authenticated user product
-    layout.tsx               # AppSidebar + AppTopBar (NO marketing Navbar)
-    dashboard/…
-    notifications/
-    requests/…               # canonical request flows (replace /request/* orphans)
-  (admin)/
-    layout.tsx               # AdminShell only
-    admin/
-      login/
-      dashboard/…            # single tree; delete legacy /admin/approved etc.
+src/app/                       # ROUTES ONLY. Folder in ( ) = a shell; it never appears in the URL.
+  layout.tsx                   # html / body / fonts / providers — no navbar, no footer
+  (landing-page)/              # PUBLIC WEBSITE  -> /  /about  /services  /contact  /terms ...
+    layout.tsx                 #   LandingNavbar + Footer
+  (auth)/                      # LOGIN  -> /login  /register  /forget-password
+    layout.tsx                 #   minimal centred page
+  (client-app)/                # CUSTOMER APP (after login)  -> /dashboard/**
+    layout.tsx                 #   ClientShell = ClientTopBar + ClientSidebar
+    dashboard/…                #   home, services forms, my-requests, profile, notifications
+  (super-admin)/               # SUPER ADMIN PANEL  -> /admin/**
+    admin/login/               #   no admin chrome here
+    admin/(panel)/             #   SuperAdminShell around everything below
+      dashboard/…              #   overview, requests?status=, leads, users, notifications, pricing
+  api/                         # thin HTTP handlers: parse -> authorize -> service -> respond
 ```
 
 **Hard UX rules**
 
-- After user login → only `(app)` chrome
-- After admin login → only `(admin)` chrome
-- Marketing Navbar **never** mounts under `(app)` or `(admin)`
+- After user login → only `(client-app)` chrome
+- After admin login → only `(super-admin)` chrome
+- Marketing Navbar **never** mounts under `(client-app)` or `(super-admin)`
 - Logged-in user hitting `/` → redirect `/dashboard` (keep) **or** allow marketing without app chrome (product choice; default keep redirect)
 
 ### 3.2 Layering (dependency direction)
@@ -132,19 +129,21 @@ types/ shared across layers (no imports from UI)
 
 ```
 src/
-  app/…                      # routes only
+  app/…                        # routes only (see 3.1)
   components/
-    marketing/ | app/ | admin/ | ui/
-  features/                  # optional feature folders if a flow grows (requests, leads)
-  services/                  # RequestService, AuthService, LeadService, …
-  repositories/
-  models/                    # rename from model/; one schema per entity
-  lib/
-    auth/                    # authOptions, getSession, requireUser, requireAdmin
-    db.ts | mail.ts | s3.ts | otp.ts | razorpay.ts
-  stores/                    # Zustand: UI-only (sidebar collapsed, modal open)
-  types/
-  middleware.ts
+    landing-page/              # only used by (landing-page)
+    client-app/                # only used by (client-app)
+    super-admin/               # only used by (super-admin)
+    auth/                      # login / register / reset page frame
+    ui/                        # shared kit: button, input, card, table, badge, dialog …
+  services/                    # business rules: RequestService, PricingService, PaymentService …
+  repositories/                # database access only
+  models/                      # one Mongoose schema per entity
+  lib/                         # db, auth (options, guards, admin token), otp, rate-limit, catalog …
+  hooks/                       # small client hooks (useServicePrices)
+  stores/                      # Zustand: UI-only (sidebar collapsed)
+  types/                       # shared DTOs and next-auth / Razorpay augmentation
+  proxy.ts                     # edge guard for /admin and /dashboard
 ```
 
 ### 3.4 State management
@@ -192,7 +191,7 @@ Migrate OTP stores to Mongo (`Otp` collection, TTL index). Remove `global.otpCac
 
 ### Phase 2 — Route segregation + chrome (3–5 days)
 
-1. Introduce `(marketing)`, `(auth)`, `(app)`, `(admin)` layouts
+1. Introduce `(landing-page)`, `(auth)`, `(client-app)`, `(super-admin)` layouts
 2. Root layout: providers + fonts only
 3. Delete `NavShell` god-object; move chrome into group layouts
 4. Remove duplicate Navbar from home `page`
@@ -205,7 +204,7 @@ Migrate OTP stores to Mongo (`Otp` collection, TTL index). Remove `global.otpCac
 |--------------|-----|
 | `/profile` | `/dashboard/profile` |
 | `/my-requests` | `/dashboard/my-requests` |
-| `/notifications` | stay or `/dashboard/notifications` (prefer under `(app)`) |
+| `/notifications` | stay or `/dashboard/notifications` (prefer under `(client-app)`) |
 | `/request/*` | `/dashboard/…` service forms or `/dashboard/requests/new?type=` |
 | `/admin/approved` etc. | `/admin/dashboard/…` only |
 | `/services/Project-Finance-Assistance` | map to real service slug or remove link |
@@ -256,7 +255,7 @@ Migrate OTP stores to Mongo (`Otp` collection, TTL index). Remove `global.otpCac
 | **I**nterface segregation | Narrow hooks/props (`RequestListProps` not god `DashboardProps`) |
 | **D**ependency inversion | Routes/UI depend on service interfaces; services depend on repo interfaces, not concrete mongoose calls in UI |
 
-**Coupling:** no cross-import between `components/marketing` and `components/admin`.  
+**Coupling:** no cross-import between `components/landing-page` and `components/super-admin`.  
 **Cohesion:** all Request status transitions live in `RequestService`, not scattered PATCH handlers.
 
 ---
@@ -273,7 +272,7 @@ Migrate OTP stores to Mongo (`Otp` collection, TTL index). Remove `global.otpCac
 
 ## 7. Middleware & security checklist
 
-- Matcher covers: marketing auth redirects, all `(app)` paths, all `(admin)` except login, **and** optionally `/api/*` via shared `require*` in handlers (edge MW for pages; handlers for APIs)
+- Matcher covers: marketing auth redirects, all `(client-app)` paths, all `(super-admin)` except login, **and** optionally `/api/*` via shared `require*` in handlers (edge MW for pages; handlers for APIs)
 - CSRF: next-auth defaults; admin cookie `sameSite: 'lax'|'strict'`, `secure: true` in production
 - Uploads: auth + content-type allowlist + size cap + per-user prefix in S3
 - Never return OTP codes in JSON responses
@@ -285,11 +284,11 @@ Migrate OTP stores to Mongo (`Otp` collection, TTL index). Remove `global.otpCac
 
 1. **Strangler:** new route groups first; redirect old paths; delete old files when traffic zero
 2. **allowJs** during TS migrate; forbid new `.js`/`.jsx` via ESLint / AGENTS rule
-3. **One vertical slice end-to-end** before mass rewrite — e.g. Profile GET/PUT typed + authed + `(app)` layout — proves pattern
+3. **One vertical slice end-to-end** before mass rewrite — e.g. Profile GET/PUT typed + authed + `(client-app)` layout — proves pattern
 4. Do **not** rewrite UI and backend for every feature in the same PR; slice by phase
 
 **First vertical slice (recommended):**  
-`(app)` layout + typed Profile API + `ProfileService` + dashboard profile page. Then Requests.
+`(client-app)` layout + typed Profile API + `ProfileService` + dashboard profile page. Then Requests.
 
 ---
 
