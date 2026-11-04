@@ -1,0 +1,40 @@
+---
+description: SOLID shells, layering, coupling — always on for this repo
+alwaysApply: true
+---
+
+# Architecture hard rules
+
+Rebuild plan: `docs/REBUILD_PLAN.md`. Agent law: `AGENTS.md`.
+
+## Surfaces
+
+- Marketing / auth / user app / admin = **separate route-group layouts**.
+- Root layout: providers + fonts only. **No** global NavShell.
+- Post-login: **no** landing-page navbar. Admin login: **no** admin bottom/side nav.
+
+## Layering
+
+```
+app (UI/routes) → services → repositories → models/lib
+```
+
+- Pages must not import Mongoose models for business writes.
+- API routes must not embed schema definitions or long domain logic.
+- No cross-imports between `components/landing-page`, `components/client-app`, `components/super-admin` except via `components/ui`.
+
+## SOLID
+
+- One use-case per service method; one chrome owner per layout.
+- Extend Request/admin flows via shared service + filters — do not clone pages per status.
+- Depend on services at boundaries, not concrete DB calls from UI.
+
+## State
+
+- Auth session: Auth.js / next-auth.
+- Server data: RSC/services or TanStack Query — **not** Zustand.
+- Zustand: UI chrome only (e.g. sidebar collapsed).
+
+## TS
+
+- New files `.ts`/`.tsx` only. Prefer `strict`. No new `any` without a dated ponytail comment.

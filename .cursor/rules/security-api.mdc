@@ -1,0 +1,15 @@
+---
+description: Authz and secret hygiene for API routes and middleware
+globs: src/app/api/**/*,src/middleware.*,src/lib/auth/**/*
+alwaysApply: false
+---
+
+# API / auth security
+
+- No hardcoded secrets, default passwords, or JWT secret fallbacks. Missing env → fail closed.
+- User resources: authorize via session user id, never client-supplied email alone.
+- Admin: verify JWT (signature + expiry + role) or Auth.js admin role — cookie presence is not auth.
+- Sensitive routes (requests, upload, leads, payments, chat, cibil, profile): `requireUser` / `requireAdmin` in the same change that touches them.
+- Never return OTP in JSON. Persist OTP with TTL — no `global.*` caches for auth.
+- Uploads: auth + type/size limits. Payments: server-side amounts.
+- Do not add prod-reachable debug/test DB or OTP harness endpoints.

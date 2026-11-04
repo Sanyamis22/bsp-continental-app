@@ -1,0 +1,15 @@
+---
+description: TS and UI conventions for app components and pages
+globs: src/app/**/*.{ts,tsx,js,jsx},src/components/**/*.{ts,tsx,js,jsx},src/types/**/*
+alwaysApply: false
+---
+
+# Frontend / TS
+
+- Convert touched JS/JSX to TS/TSX when editing if low-cost; never add new JS/JSX.
+- Shared shapes in `src/types/`. Augment next-auth types in one declaration file.
+- Server Components default; `'use client'` only when needed.
+- Do not mount Navbar/Footer/Sidebar from both layout and page.
+- Dead links: fix to canonical paths from `docs/REBUILD_PLAN.md` § Phase 2 table.
+- Extract `components/ui` primitives only at 3+ call sites.
+- Before unfamiliar Next APIs: read `node_modules/next/dist/docs/`.

@@ -1,0 +1,10 @@
+---
+description: Never add AI/agent Co-authored-by on git commits
+alwaysApply: true
+---
+
+# No AI co-author on commits
+
+- Never add `Co-authored-by` for Cursor, Copilot, Claude, Composer, or any AI/agent.
+- Never invent co-author trailers. Commit author = human developer only.
+- When creating commits for the user, omit all AI co-author metadata.
