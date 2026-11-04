@@ -1,8 +1,21 @@
 # BSP Continental — Full Rebuild Plan
 
-**Status:** Planning (no migration started)  
-**Stack today:** Next.js 16.2 / React 19 / JS / Mongoose / next-auth v4 / dual admin JWT  
+**Status:** Phases 0, 1, 2 done; Phase 3 done for Profile, Requests, Notifications, Leads, Payments, Auth (see checklist below). Phase 4 started (shared UI kit + auth surface). Phase 5 (cleanup) pending.  
+**Stack today:** Next.js 16.2 / React 19 / TypeScript strict / Mongoose / next-auth v4 / separate verified admin JWT (Option B, jose)  
 **Target:** TypeScript strict · segregated route shells · cohesive domain layer · hardened APIs · consistent UX
+
+---
+
+## Status checklist (keep current)
+
+- [x] **Phase 0 — Security:** secret fallbacks removed (fail closed via `requireEnv`); admin JWT verified in `proxy.ts` and APIs (`requireAdmin`); `requireUser` / ownership scoping on requests, notifications, upload, profile, chat, CIBIL; OTPs in Mongo (hashed, TTL, single use, attempt cap, lockout); sliding-window rate limits + resend cooldowns (`lib/rate-limit.ts`, `lib/otp.ts`); server-side prices (`lib/catalog.ts`) and signature-verified payments; debug routes (`test-db`, `wpotpsend`, unused `verify-otp` / `welcome` / `vetting`) deleted; `.env.example` added; baseline security headers.
+- [x] **Phase 1 — TypeScript:** `tsc --noEmit` clean under `strict`, zero `.js` / `.jsx` in `src/`, `npm run typecheck`.
+- [x] **Phase 2 — Route groups:** `(marketing)`, `(auth)`, `(app)`, `(admin)/admin/(console)` layouts own their chrome; `NavShell` deleted; legacy URLs redirect (`next.config.mjs`); admin status clones merged into `/admin/dashboard/requests?status=`.
+- [~] **Phase 3 — Domain:** services + repositories for Profile, Request, Notification, Lead, Payment, Auth. Pending: unified `{ error: { code, message } }` response shape (needs a shared client hook), real `/api/admin/users`, TanStack Query hooks.
+- [~] **Phase 4 — UI rebuild / shared kit:** shadcn-style kit in `src/components/ui` (Button, Input, Textarea, Label, Card, Badge, Table, Skeleton, Separator, Dialog; brand tokens in `globals.css`; `components.json` for future `shadcn add`). Converted so far: login, register, forgot-password, admin login, app top bar. **Next:** dashboard forms, `my-requests`, admin requests/leads tables, marketing pages; then TanStack Query hooks (`useRequests`, `useProfile`, `useNotifications`). `shadcn init` itself fails here (npm `allow-scripts` setting), so kit files were written by hand from the base-nova pattern on `@base-ui/react`.
+- [ ] **Phase 5 — Hardening:** CSP, remove mock-data fallbacks in admin users page, strip PII `console.log`s, tests, delete leftover orphans.
+
+**Rotate before deploy** (these values were committed in git history): the Gmail app password, the Resiliohub token that was hard-coded in the removed `wpotpsend` route, the admin password and the JWT secret.
 
 ---
 
