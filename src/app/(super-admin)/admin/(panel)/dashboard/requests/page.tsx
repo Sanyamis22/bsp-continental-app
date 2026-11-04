@@ -1,4 +1,4 @@
-import RequestsView from "@/components/admin/RequestsView";
+import RequestsView from "@/components/super-admin/RequestsView";
 import { REQUEST_STATUSES } from "@/types/request";
 
 export default async function AdminRequestsPage({

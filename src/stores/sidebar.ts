@@ -12,5 +12,5 @@ const createSidebarStore = () =>
   }));
 
 /** UI-only state (no server data): whether the sidebar of each shell is collapsed. */
-export const useAppSidebar = createSidebarStore();
-export const useAdminSidebar = createSidebarStore();
+export const useClientSidebar = createSidebarStore();
+export const useSuperAdminSidebar = createSidebarStore();

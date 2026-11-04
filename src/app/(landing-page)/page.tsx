@@ -1,11 +1,11 @@
 "use client";
 
-import HomeSection from "@/components/marketing/HomeSection";
-import AboutSection from "@/components/marketing/AboutSection";
-import ServicesSection from "@/components/marketing/ServicesSection";
-import HowItWorksSection from "@/components/marketing/HowItWorksSection";
-import WhyChooseSection from "@/components/marketing/WhyChooseSection";
-import ContactSection from "@/components/marketing/ContactSection";
+import HomeSection from "@/components/landing-page/HomeSection";
+import AboutSection from "@/components/landing-page/AboutSection";
+import ServicesSection from "@/components/landing-page/ServicesSection";
+import HowItWorksSection from "@/components/landing-page/HowItWorksSection";
+import WhyChooseSection from "@/components/landing-page/WhyChooseSection";
+import ContactSection from "@/components/landing-page/ContactSection";
 import { FaWhatsapp } from "react-icons/fa";
 
 export default function LandingPage() {

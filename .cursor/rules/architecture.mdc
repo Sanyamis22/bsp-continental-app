@@ -11,7 +11,7 @@ Rebuild plan: `docs/REBUILD_PLAN.md`. Agent law: `AGENTS.md`.
 
 - Marketing / auth / user app / admin = **separate route-group layouts**.
 - Root layout: providers + fonts only. **No** global NavShell.
-- Post-login: **no** marketing Navbar. Admin login: **no** admin bottom/side nav.
+- Post-login: **no** landing-page navbar. Admin login: **no** admin bottom/side nav.
 
 ## Layering
 
@@ -21,7 +21,7 @@ app (UI/routes) → services → repositories → models/lib
 
 - Pages must not import Mongoose models for business writes.
 - API routes must not embed schema definitions or long domain logic.
-- No cross-imports between `components/marketing`, `components/app`, `components/admin` except via `components/ui`.
+- No cross-imports between `components/landing-page`, `components/client-app`, `components/super-admin` except via `components/ui`.
 
 ## SOLID
 

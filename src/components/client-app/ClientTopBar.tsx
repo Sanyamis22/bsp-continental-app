@@ -7,7 +7,7 @@ import { FiBell, FiLogOut } from "react-icons/fi";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export default function AppTopBar() {
+export default function ClientTopBar() {
   const { data: session } = useSession();
   const name = session?.user?.name || "User";
   const image = session?.user?.image || "";

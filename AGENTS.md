@@ -18,14 +18,14 @@ Three surfaces. Never mix chrome.
 
 | Surface | Route group | Chrome allowed | Forbidden |
 |---------|-------------|----------------|-----------|
-| Marketing | `(marketing)` | Marketing Navbar + Footer | App sidebar, admin chrome, post-login marketing Navbar |
-| Auth | `(auth)` | Minimal centered shell | Marketing Navbar, app sidebar, admin chrome |
-| User app | `(app)` | App sidebar + app top bar | Marketing Navbar, marketing Footer-as-nav, admin chrome |
-| Admin | `(admin)` | Admin shell only | Marketing Navbar, user sidebar; hide admin nav on `/admin/login` |
+| Landing page | `(landing-page)` | Landing-page navbar + Footer | App sidebar, admin chrome, post-login landing-page navbar |
+| Auth | `(auth)` | Minimal centered shell | Landing-page navbar, app sidebar, admin chrome |
+| Client app | `(client-app)` | App sidebar + app top bar | Landing-page navbar, landing-page footer-as-nav, admin chrome |
+| Super admin | `(super-admin)` | Admin shell only | Landing-page navbar, user sidebar; hide admin nav on `/admin/login` |
 
 - Root `layout` = `html` / `body` / fonts / providers **only**. No global `NavShell`.
 - Pathname-based chrome switching in a shared client wrapper is **banned** (that caused Navbar/sidebar inconsistency).
-- After user login, marketing Navbar **must not** appear.
+- After user login, landing-page navbar **must not** appear.
 - One canonical path per feature; add redirects for legacy URLs; do not leave duplicate admin trees.
 
 ---
@@ -54,7 +54,7 @@ Three surfaces. Never mix chrome.
 ### Coupling / cohesion
 
 - **Allowed dependency direction:** `app → services → repositories → models/lib`. Never reverse.
-- **No cross-surface imports:** `components/marketing/*` must not import `components/admin/*` or `components/app/*` (shared primitives only via `components/ui`).
+- **No cross-surface imports:** `components/landing-page/*` must not import `components/super-admin/*` or `components/client-app/*` (shared primitives only via `components/ui`).
 - **High cohesion:** all Request status transitions live in one `RequestService` (or equivalent), not scattered in pages/API files.
 - **Low coupling:** pages do not call `fetch` to five endpoints with duplicated auth; use one hook/service per aggregate.
 - **No inline Mongoose schemas inside route files.** One model file per entity under `src/models/`.
@@ -126,7 +126,7 @@ If a task would weaken authz, refuse and fix the guard instead.
 ## Before writing code — checklist
 
 1. Which plan phase does this serve? If none, stop and ask.
-2. Which surface (marketing / auth / app / admin)? Use that layout only.
+2. Which surface (landing page / auth / client app / super admin)? Use that layout only.
 3. Does a service/repo already exist? Extend it; do not duplicate.
 4. Is authz on the API path? If not, add it in the same change.
 5. Are types updated? New public shapes need types in `src/types/`.

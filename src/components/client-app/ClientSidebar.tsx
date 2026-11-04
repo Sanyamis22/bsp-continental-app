@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { useAppSidebar } from "@/stores/sidebar";
+import { useClientSidebar } from "@/stores/sidebar";
 import { 
   Home, 
   PhoneCall,
@@ -34,10 +34,10 @@ const mobileMenus = [
   { title: "Finance", href: "/dashboard/finance", icon: CircleDollarSign },
 ];
 
-export default function AppSidebar() {
+export default function ClientSidebar() {
   const pathname = usePathname();
-  const isMinimized = useAppSidebar((s) => s.collapsed);
-  const toggle = useAppSidebar((s) => s.toggle);
+  const isMinimized = useClientSidebar((s) => s.collapsed);
+  const toggle = useClientSidebar((s) => s.toggle);
 
   const toggleSidebar = (e: React.MouseEvent) => {
     e.preventDefault();
