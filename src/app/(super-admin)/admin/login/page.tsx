@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { apiError } from "@/types/api";
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("");
@@ -36,7 +37,7 @@ export default function AdminLoginPage() {
           window.location.href = "/admin/dashboard";
         }, 400);
       } else {
-        setErrorMsg(data.message || "Invalid Email or Master Password!");
+        setErrorMsg(apiError(data, "Invalid Email or Master Password!"));
       }
     } catch {
       setErrorMsg("Network connection error. Please try again.");

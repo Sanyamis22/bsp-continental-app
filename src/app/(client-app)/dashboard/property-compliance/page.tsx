@@ -17,7 +17,7 @@ import {
   FiPaperclip
 } from 'react-icons/fi';
 import type { RequestDTO, RequestDocumentDTO } from "@/types/request";
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,7 +123,7 @@ export default function PropertyVettingPage() {
         });
 
         const result = await response.json();
-        if (!response.ok || !result.success) throw new Error(result.error || `Upload failed`);
+        if (!response.ok || !result.success) throw new Error(apiError(result, `Upload failed`));
 
         finalUploadedUrls.push({ 
           category: fileItem.category,
@@ -163,7 +163,7 @@ export default function PropertyVettingPage() {
       });
 
       const dbResult = await dbResponse.json();
-      if (!dbResponse.ok || !dbResult.success) throw new Error(dbResult.message || "DB transaction fault.");
+      if (!dbResponse.ok || !dbResult.success) throw new Error(apiError(dbResult, "DB transaction fault."));
 
       setIsSubmitting(false);
       setSubmitStatus({ success: true, msg: 'Property Compliance request submitted! Redirecting to your requests...' });

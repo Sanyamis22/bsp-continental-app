@@ -1,73 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { FiPhone, FiCreditCard, FiShield, FiCheckCircle } from "react-icons/fi";
 import { errorMessage } from "@/types/api";
 import { Button } from "@/components/ui/button";
+import { useProfile, useUpdateProfile } from "@/hooks/queries";
 import { Card, CardContent } from "@/components/ui/card";
 import { IconInput } from "@/components/ui/icon-input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type ProfileForm = { phone: string; panCard: string; identificationNo: string };
+const EMPTY_PROFILE: ProfileForm = { phone: "", panCard: "", identificationNo: "" };
+
 export default function ProfilePage() {
   const { data: session, status } = useSession();
+  const { data: saved, isLoading, error: loadError } = useProfile(status === "authenticated");
+  const updateProfile = useUpdateProfile();
 
-  const [formData, setFormData] = useState({
-    phone: "",
-    panCard: "",
-    identificationNo: ""
-  });
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  // Until the user edits, the form shows the saved profile.
+  const [draft, setDraft] = useState<ProfileForm | null>(null);
+  const formData = draft ?? saved ?? EMPTY_PROFILE;
+  const setFormData = (value: ProfileForm) => setDraft(value);
+
+  const loading = status === "loading" || (status === "authenticated" && isLoading);
+  const updating = updateProfile.isPending;
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (status !== "authenticated") return;
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/user/profile");
-        const data = await res.json();
-        if (active && res.ok && data.user) {
-          setFormData({
-            phone: data.user.phone || "",
-            panCard: data.user.panCard || "",
-            identificationNo: data.user.identificationNo || "",
-          });
-        }
-      } catch {
-        if (active) setError("Could not load your profile. Please try again.");
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [status]);
+  const shownError = error || (loadError instanceof Error ? loadError.message : "");
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUpdating(true);
     setMessage("");
     setError("");
-
     try {
-      const res = await fetch("/api/user/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Update operation failed.");
-      
-      setMessage("Parameters synchronized inside database storage ledger!");
+      await updateProfile.mutateAsync(formData);
+      setDraft(null);
+      setMessage("Profile saved.");
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
-      setUpdating(false);
     }
   };
 
@@ -106,9 +78,9 @@ export default function ProfilePage() {
               {message}
             </div>
           )}
-          {error && (
+          {shownError && (
             <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-center text-xs font-semibold text-rose-700">
-              {error}
+              {shownError}
             </div>
           )}
 

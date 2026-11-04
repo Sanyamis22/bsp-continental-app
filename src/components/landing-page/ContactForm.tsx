@@ -7,7 +7,7 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 
 const EMPTY = {
   fullName: "",
@@ -42,7 +42,7 @@ export default function ContactForm() {
         body: JSON.stringify(values),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || "Failed to submit contact request.");
+      if (!res.ok || !data.success) throw new Error(apiError(data, "Failed to submit contact request."));
       setSubmitted(true);
       setValues(EMPTY);
       setAgree(false);

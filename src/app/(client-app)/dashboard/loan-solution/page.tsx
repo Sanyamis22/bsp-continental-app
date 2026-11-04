@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { FiArrowLeft, FiFileText, FiUpload, FiX, FiCheck, FiUser, FiDollarSign, FiBriefcase, FiAlertCircle } from 'react-icons/fi';
 import Link from 'next/link';
 import type { RequestDTO, RequestDocumentDTO } from "@/types/request";
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,7 +67,7 @@ export default function LoanSolutionPage() {
           });
 
           const result = await response.json();
-          if (!response.ok || !result.success) throw new Error(result.error || `Upload failed`);
+          if (!response.ok || !result.success) throw new Error(apiError(result, `Upload failed`));
 
           finalUploadedUrls.push({ 
             name: result.name || fileItem.name, 
@@ -108,7 +108,7 @@ export default function LoanSolutionPage() {
       });
 
       const dbResult = await dbResponse.json();
-      if (!dbResponse.ok || !dbResult.success) throw new Error(dbResult.message || "DB transaction fault.");
+      if (!dbResponse.ok || !dbResult.success) throw new Error(apiError(dbResult, "DB transaction fault."));
 
       setIsSubmitting(false);
       setSubmitStatus({ success: true, msg: 'Loan Rejection Appeal Submitted Successfully!' });

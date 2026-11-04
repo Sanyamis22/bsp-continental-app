@@ -16,7 +16,7 @@ import {
   FiSend,
   FiCheck
 } from "react-icons/fi";
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 import InquiryDialog from "@/components/landing-page/InquiryDialog";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
@@ -103,7 +103,7 @@ export default function CibilManagementPage() {
       });
       const inqData = await inqRes.json();
       if (!inqRes.ok || !inqData.success) {
-        throw new Error(inqData.error || "Failed to submit inquiry details.");
+        throw new Error(apiError(inqData, "Failed to submit inquiry details."));
       }
 
       const isLoaded = await loadRazorpayScript();
@@ -121,7 +121,7 @@ export default function CibilManagementPage() {
       });
       const orderData = await orderRes.json();
       if (!orderRes.ok || !orderData.order_id || !orderData.key_id) {
-        throw new Error(orderData.error || "Order creation failed.");
+        throw new Error(apiError(orderData, "Order creation failed."));
       }
 
       const options = {

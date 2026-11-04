@@ -18,7 +18,7 @@ import {
   FiBriefcase,
   FiDollarSign
 } from "react-icons/fi";
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 import { formatInr, useServicePrices } from "@/hooks/useServicePrices";
 import InquiryDialog from "@/components/landing-page/InquiryDialog";
 import { Button } from "@/components/ui/button";
@@ -130,7 +130,7 @@ export default function FinancialConsultingPage() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to initialize inquiry payment order.");
+        throw new Error(apiError(data, "Failed to initialize inquiry payment order."));
       }
 
       // 2. Create the Razorpay order server-side (amount comes from the stored inquiry)
@@ -141,7 +141,7 @@ export default function FinancialConsultingPage() {
       });
       const orderData = await orderRes.json();
       if (!orderRes.ok || !orderData.order_id || !orderData.key_id) {
-        throw new Error(orderData.error || "Order creation failed.");
+        throw new Error(apiError(orderData, "Order creation failed."));
       }
 
       // 3. Open Real Razorpay Payment Gateway Popup

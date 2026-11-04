@@ -25,7 +25,7 @@ const financeServices = [
     title: "Project Finance Assistance",
     subtitle: "Pre-Approval & Loan Readiness",
     icon: Target,
-    directHref: "/services/Project-Finance-Assistance",
+    directHref: "/dashboard/loan-solution",
     points: [
       "File Health & CIBIL Pre-Audit",
       "Gap & Rejection Risk Elimination",

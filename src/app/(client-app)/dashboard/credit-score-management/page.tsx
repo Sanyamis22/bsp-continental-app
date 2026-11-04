@@ -17,7 +17,7 @@ import {
   FiX,
   FiPaperclip
 } from 'react-icons/fi';
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -136,7 +136,7 @@ export default function CreditScoreManagementPage() {
         setSuccessMsg('Your Credit Score Application has been successfully submitted! Redirecting...');
         setTimeout(() => router.push('/dashboard/my-requests'), 2000);
       } else {
-        alert(result.message || 'Submission failed');
+        alert(apiError(result, 'Submission failed'));
       }
     } catch (err) {
       console.error(err);

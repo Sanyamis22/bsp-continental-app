@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 import type { ServicePriceDTO } from "@/types/pricing";
 
 type RowState = { value: string; saving: boolean; message?: { ok: boolean; text: string } };
@@ -25,7 +25,7 @@ export default function PricingManager() {
   const fetchPrices = async (): Promise<ServicePriceDTO[]> => {
     const res = await fetch("/api/prices", { cache: "no-store" });
     const json = await res.json();
-    if (!res.ok || !json.data) throw new Error(json.error || "Could not load prices.");
+    if (!res.ok || !json.data) throw new Error(apiError(json, "Could not load prices."));
     return json.data;
   };
 
@@ -57,7 +57,7 @@ export default function PricingManager() {
         body: JSON.stringify({ slug, amountInr }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Could not save price.");
+      if (!res.ok) throw new Error(apiError(json, "Could not save price."));
       const saved: ServicePriceDTO = json.data;
       setPrices((prev) => prev?.map((p) => (p.slug === slug ? saved : p)) ?? prev);
       patchRow(slug, { saving: false, value: String(saved.amountInr), message: { ok: true, text: "Saved. Live now." } });

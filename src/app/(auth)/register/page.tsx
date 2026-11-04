@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiArrowRight, FiCheckCircle, FiRefreshCw, FiShield, FiUser, FiPhone, FiLock } from "react-icons/fi";
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 import { IconInput as AuthField } from "@/components/ui/icon-input";
 import { AuthShell, AuthSpinner } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export default function RegisterPage() {
       body: JSON.stringify(payload),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "A network error occurred. Please try again.");
+    if (!res.ok) throw new Error(apiError(data, "A network error occurred. Please try again."));
     return data;
   };
 

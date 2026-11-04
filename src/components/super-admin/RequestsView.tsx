@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   FiAlertCircle, FiArrowLeft, FiCheckCircle, FiExternalLink, FiFileText, FiMail,
@@ -15,19 +16,14 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { queryKeys, useRequests } from '@/hooks/queries';
 import { statusBadgeVariant } from '@/lib/request-ui';
 import { cn } from '@/lib/utils';
 import { errorMessage } from '@/types/api';
 import { REQUEST_STATUSES, SERVICE_TYPES, type RequestDTO, type RequestStatus } from '@/types/request';
+import { apiError } from "@/types/api";
 
 const DECISION_STATUSES = REQUEST_STATUSES.filter((s) => s !== 'Pending');
-
-async function fetchRequests(): Promise<RequestDTO[]> {
-  const res = await fetch('/api/requests', { cache: 'no-store' });
-  const result = await res.json();
-  if (!res.ok || !result.success) throw new Error(result.error || 'Could not load requests.');
-  return result.data || [];
-}
 
 interface RequestsViewProps {
   initialStatus: RequestStatus;
@@ -36,9 +32,9 @@ interface RequestsViewProps {
 }
 
 export default function RequestsView({ initialStatus, initialService, initialQuery }: RequestsViewProps) {
-  const [allRequests, setAllRequests] = useState<RequestDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const queryClient = useQueryClient();
+  const { data: allRequests = [], isLoading: loading, isFetching, error: queryError, refetch } = useRequests();
+  const loadError = queryError instanceof Error ? queryError.message : '';
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [currentStatusTab, setCurrentStatusTab] = useState<string>(initialStatus);
   const [serviceFilter, setServiceFilter] = useState(initialService);
@@ -51,25 +47,7 @@ export default function RequestsView({ initialStatus, initialService, initialQue
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [dialogError, setDialogError] = useState('');
 
-  useEffect(() => {
-    let active = true;
-    fetchRequests()
-      .then((data) => active && setAllRequests(data))
-      .catch((err) => active && setLoadError(errorMessage(err)))
-      .finally(() => active && setLoading(false));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const reload = () => {
-    setLoading(true);
-    setLoadError('');
-    fetchRequests()
-      .then(setAllRequests)
-      .catch((err) => setLoadError(errorMessage(err)))
-      .finally(() => setLoading(false));
-  };
+  const reload = () => refetch();
 
   const openDecision = (req: RequestDTO) => {
     setActiveRequest(req);
@@ -91,7 +69,7 @@ export default function RequestsView({ initialStatus, initialService, initialQue
         uploadPayload.append('file', replyFile);
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: uploadPayload });
         const uploadResult = await uploadRes.json();
-        if (!uploadRes.ok || !uploadResult.success) throw new Error(uploadResult.error || 'File upload failed.');
+        if (!uploadRes.ok || !uploadResult.success) throw new Error(apiError(uploadResult, 'File upload failed.'));
         uploadedAdminDoc = { name: uploadResult.name || replyFile.name, url: uploadResult.fileUrl || uploadResult.url };
       }
 
@@ -106,9 +84,9 @@ export default function RequestsView({ initialStatus, initialService, initialQue
         }),
       });
       const result = await response.json();
-      if (!response.ok || !result.success) throw new Error(result.error || result.message || 'Update failed.');
+      if (!response.ok || !result.success) throw new Error(apiError(result, 'Update failed.'));
 
-      setAllRequests((prev) =>
+      queryClient.setQueryData<RequestDTO[]>(queryKeys.requests, (prev = []) =>
         prev.map((item) =>
           item._id === activeRequest._id
             ? {
@@ -155,8 +133,8 @@ export default function RequestsView({ initialStatus, initialService, initialQue
             <h1 className="text-2xl font-black tracking-tight">Requests Desk</h1>
           </div>
         </div>
-        <Button type="button" onClick={reload} disabled={loading} className="self-start sm:self-auto">
-          <FiRefreshCw className={loading ? 'animate-spin' : ''} /> Sync
+        <Button type="button" onClick={reload} disabled={isFetching} className="self-start sm:self-auto">
+          <FiRefreshCw className={isFetching ? 'animate-spin' : ''} /> Sync
         </Button>
       </div>
 

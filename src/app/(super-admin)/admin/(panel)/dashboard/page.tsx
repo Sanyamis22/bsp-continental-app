@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { FiActivity, FiAlertCircle, FiBriefcase, FiCalendar, FiEye, FiFileText, FiRefreshCw, FiSearch, FiShield, FiTrendingUp, FiUsers } from 'react-icons/fi';
@@ -14,7 +14,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { statusBadgeVariant } from '@/lib/request-ui';
 import { cn } from '@/lib/utils';
-import { errorMessage } from '@/types/api';
+import { useRequests } from '@/hooks/queries';
 import type { RequestDTO } from '@/types/request';
 
 type ChartMetric = 'total' | 'cibil' | 'property';
@@ -29,42 +29,15 @@ const FILTERS = [
   { id: 'PROPERTY', label: 'Property' },
 ] as const;
 
-async function fetchLedger(): Promise<RequestDTO[]> {
-  const res = await fetch('/api/requests', { cache: 'no-store' });
-  const data = await res.json();
-  if (!res.ok || !data.success) throw new Error(data.error || 'Could not load requests.');
-  return data.data || [];
-}
-
 export default function AdminDashboardAnalytics() {
   const router = useRouter();
-  const [requests, setRequests] = useState<RequestDTO[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data: requests = [], isLoading, isFetching, error: loadError, refetch } = useRequests();
+  const error = loadError instanceof Error ? loadError.message : '';
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<(typeof FILTERS)[number]['id']>('ALL');
   const [chartMetric, setChartMetric] = useState<ChartMetric>('total');
   const [selectedRecord, setSelectedRecord] = useState<RequestDTO | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    fetchLedger()
-      .then((data) => active && setRequests(data))
-      .catch((err) => active && setError(errorMessage(err)))
-      .finally(() => active && setIsLoading(false));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const reload = () => {
-    setIsLoading(true);
-    setError('');
-    fetchLedger()
-      .then(setRequests)
-      .catch((err) => setError(errorMessage(err)))
-      .finally(() => setIsLoading(false));
-  };
+  const reload = () => refetch();
 
   const metrics = useMemo(() => {
     const today = dayKey(new Date().toISOString());
@@ -136,8 +109,8 @@ export default function AdminDashboardAnalytics() {
           <Button type="button" onClick={() => router.push('/admin/dashboard/leads')}>
             <FiUsers /> Leads
           </Button>
-          <Button type="button" variant="outline" onClick={reload} disabled={isLoading}>
-            <FiRefreshCw className={isLoading ? 'animate-spin' : ''} /> Sync
+          <Button type="button" variant="outline" onClick={reload} disabled={isFetching}>
+            <FiRefreshCw className={isFetching ? 'animate-spin' : ''} /> Sync
           </Button>
         </div>
       </div>

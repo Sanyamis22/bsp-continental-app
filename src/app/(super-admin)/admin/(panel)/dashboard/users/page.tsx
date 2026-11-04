@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FiAlertCircle, FiInbox, FiMail, FiPhone, FiRefreshCw, FiSearch, FiUsers } from 'react-icons/fi';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/ui/stat-card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { errorMessage } from '@/types/api';
+import { useAdminUsers } from '@/hooks/queries';
 import type { UserDTO } from '@/types/user';
 
 const isAdminRole = (role?: string) => role === 'admin' || role === 'Admin' || role === 'Super Admin';
@@ -18,39 +18,11 @@ const isAdminRole = (role?: string) => role === 'admin' || role === 'Admin' || r
 const joined = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
 
-async function fetchUsers(): Promise<UserDTO[]> {
-  const res = await fetch('/api/admin/users', { cache: 'no-store' });
-  const data = await res.json();
-  if (!res.ok || !Array.isArray(data.users)) throw new Error(data.error || 'Could not load users.');
-  return data.users;
-}
-
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<UserDTO[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data: users = [], isLoading, isFetching, error, refetch } = useAdminUsers();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserDTO | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    fetchUsers()
-      .then((data) => active && setUsers(data))
-      .catch((err) => active && setError(errorMessage(err)))
-      .finally(() => active && setIsLoading(false));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const reload = () => {
-    setIsLoading(true);
-    setError('');
-    fetchUsers()
-      .then(setUsers)
-      .catch((err) => setError(errorMessage(err)))
-      .finally(() => setIsLoading(false));
-  };
+  const reload = () => refetch();
 
   const filteredUsers = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -71,8 +43,8 @@ export default function AdminUsersPage() {
           <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Registered Users</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">All client accounts, Google logins and phone records.</p>
         </div>
-        <Button type="button" onClick={reload} disabled={isLoading} className="self-start sm:self-auto">
-          <FiRefreshCw className={isLoading ? 'animate-spin' : ''} />
+        <Button type="button" onClick={reload} disabled={isFetching} className="self-start sm:self-auto">
+          <FiRefreshCw className={isFetching ? 'animate-spin' : ''} />
           Sync Users
         </Button>
       </div>
@@ -95,9 +67,9 @@ export default function AdminUsersPage() {
         />
       </div>
 
-      {error && (
+      {error instanceof Error && (
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700">
-          <FiAlertCircle /> {error}
+          <FiAlertCircle /> {error.message}
         </div>
       )}
 

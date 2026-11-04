@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiLock, FiArrowRight, FiPhone, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
-import { errorMessage } from "@/types/api";
+import { apiError, errorMessage } from "@/types/api";
 import { IconInput as AuthField } from "@/components/ui/icon-input";
 import { AuthShell, AuthSpinner } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ function ForgetPasswordForm() {
       body: JSON.stringify({ phone }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Reset processing issue!");
+    if (!res.ok) throw new Error(apiError(data, "Reset processing issue!"));
   };
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
@@ -105,7 +105,7 @@ function ForgetPasswordForm() {
         body: JSON.stringify({ phone, otp, password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Update database crash!");
+      if (!res.ok) throw new Error(apiError(data, "Update database crash!"));
       
       router.push("/login");
     } catch (err) {

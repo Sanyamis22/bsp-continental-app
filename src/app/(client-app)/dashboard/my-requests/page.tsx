@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { FiAlertCircle, FiArrowLeft, FiExternalLink, FiFileText, FiRefreshCw } from 'react-icons/fi';
@@ -10,41 +9,12 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { statusBadgeVariant } from '@/lib/request-ui';
 import { cn } from '@/lib/utils';
-import { errorMessage } from '@/types/api';
-import type { RequestDTO } from '@/types/request';
-
-async function fetchMyRequests(): Promise<RequestDTO[]> {
-  const res = await fetch('/api/requests', { cache: 'no-store' });
-  const result = await res.json();
-  if (!res.ok || !result.success) throw new Error(result.error || 'Could not load your requests.');
-  return result.data || [];
-}
+import { useRequests } from '@/hooks/queries';
 
 export default function MyRequestsPage() {
   const { data: session } = useSession();
-  const [requests, setRequests] = useState<RequestDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    fetchMyRequests()
-      .then((data) => active && setRequests(data))
-      .catch((err) => active && setError(errorMessage(err)))
-      .finally(() => active && setLoading(false));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const reload = () => {
-    setLoading(true);
-    setError('');
-    fetchMyRequests()
-      .then(setRequests)
-      .catch((err) => setError(errorMessage(err)))
-      .finally(() => setLoading(false));
-  };
+  const { data: requests = [], isLoading: loading, isFetching, error, refetch } = useRequests();
+  const reload = () => refetch();
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 p-4 sm:p-8">
@@ -52,8 +22,8 @@ export default function MyRequestsPage() {
         <Link href="/dashboard" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'text-muted-foreground')}>
           <FiArrowLeft /> Back to dashboard
         </Link>
-        <Button type="button" variant="outline" size="sm" onClick={reload} disabled={loading}>
-          <FiRefreshCw className={loading ? 'animate-spin' : ''} /> Refresh
+        <Button type="button" variant="outline" size="sm" onClick={reload} disabled={isFetching}>
+          <FiRefreshCw className={isFetching ? 'animate-spin' : ''} /> Refresh
         </Button>
       </div>
 
@@ -64,9 +34,9 @@ export default function MyRequestsPage() {
         </p>
       </div>
 
-      {error && (
+      {error instanceof Error && (
         <div role="alert" className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700">
-          <FiAlertCircle /> {error}
+          <FiAlertCircle /> {error.message}
         </div>
       )}
 
