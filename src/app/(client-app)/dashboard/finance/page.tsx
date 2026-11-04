@@ -13,6 +13,9 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import type { ReactNode } from "react";
+import { Card } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const WHATSAPP_NUMBER = "919575059137";
 
@@ -67,6 +70,19 @@ const financeServices = [
   }
 ];
 
+function TileLink({ href, external, children }: { href: string; external: boolean; children: ReactNode }) {
+  const className = "group block h-full rounded-2xl focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none";
+  return external ? (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      {children}
+    </a>
+  ) : (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
 export default function FinancePage() {
   return (
     <div className="w-full min-h-screen bg-[#FAFBFD] text-slate-900 antialiased pb-12 px-4 sm:px-6 md:px-8 font-sans select-none transition-all duration-300">
@@ -117,29 +133,9 @@ export default function FinancePage() {
                 ? (service.directHref ?? "#")
                 : `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(service.waMessage ?? "")}`;
 
-              const CardWrapper = ({ children }: { children: ReactNode }) => {
-                if (isDirectLink) {
-                  return (
-                    <Link href={targetHref} className="block group h-full">
-                      {children}
-                    </Link>
-                  );
-                }
-                return (
-                  <a 
-                    href={targetHref} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="block group h-full"
-                  >
-                    {children}
-                  </a>
-                );
-              };
-
               return (
-                <CardWrapper key={service.id}>
-                  <div className="bg-white p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col justify-between active:scale-[0.99]">
+                <TileLink key={service.id} href={targetHref} external={!isDirectLink}>
+                  <Card className="h-full justify-between p-6 transition-all duration-200 group-hover:shadow-md active:scale-[0.99]">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="p-3 bg-emerald-50 text-[#217044] rounded-2xl group-hover:bg-[#217044] group-hover:text-white transition-all">
@@ -175,8 +171,8 @@ export default function FinancePage() {
                         <ArrowRight size={14} />
                       </div>
                     </div>
-                  </div>
-                </CardWrapper>
+                  </Card>
+                </TileLink>
               );
             })}
           </div>
@@ -197,10 +193,7 @@ export default function FinancePage() {
           </div>
 
           <div className="relative z-10 flex items-center gap-3 shrink-0">
-            <Link
-              href="/contact"
-              className="px-6 py-3 rounded-xl bg-[#f3c251] hover:bg-[#e4b443] text-[#052516] font-black text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95"
-            >
+            <Link href="/dashboard/contact" className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider")}>
               Contact Desk
             </Link>
           </div>

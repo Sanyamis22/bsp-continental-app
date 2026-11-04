@@ -13,6 +13,7 @@ export const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         destructive: "bg-destructive text-white hover:bg-destructive/90",
         link: "text-primary underline-offset-4 hover:underline",
+        accent: "bg-[#f3c251] text-[#052516] shadow-xs hover:bg-[#e4b443]",
       },
       size: {
         default: "h-10 px-4",
