@@ -31,10 +31,8 @@ async function dbConnect() {
       serverSelectionTimeoutMS: 8000, // Wait up to 8 seconds before throwing error
     };
 
-    console.log('🔄 Attaching production database client to fresh bspsaas cluster...');
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
-      console.log('🚀 Awesome! MongoDB Connected Successfully to bspsaas database.');
       return mongooseInstance;
     }).catch((error) => {
       console.error('❌ Mongoose Connection Error:', error instanceof Error ? error.message : error);

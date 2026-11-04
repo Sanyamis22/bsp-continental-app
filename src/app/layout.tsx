@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import NextAuthProvider from "../providers/NextAuthProvider"; 
+import NextAuthProvider from "../providers/NextAuthProvider";
+import QueryProvider from "../providers/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,7 +59,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth bg-slate-50`}
     >
       <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
-        <NextAuthProvider>{children}</NextAuthProvider>
+        <NextAuthProvider>
+          <QueryProvider>{children}</QueryProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );

@@ -28,20 +28,16 @@ export const badRequest = (msg: string) => new AppError(400, "BAD_REQUEST", msg)
 export const notFound = (msg = "Resource not found.") => new AppError(404, "NOT_FOUND", msg);
 
 /**
- * Maps any thrown value to an HTTP response. Unexpected errors are logged and
- * returned as a generic message so internals never leak to clients.
- *
- * ponytail: body also carries legacy `success` / `message` / string `error` keys that existing
- * clients read — move to `{ error: { code, message } }` once clients use a shared API hook (Phase 3).
+ * Maps any thrown value to an HTTP response with the standard body
+ * `{ success: false, error: { code, message } }` (+ `retryAfterSec` on 429).
+ * Unexpected errors are logged and returned as a generic message so internals never leak.
  */
 export function errorResponse(err: unknown, fallbackMessage = "Something went wrong. Please try again.") {
   if (err instanceof AppError) {
     return NextResponse.json(
       {
         success: false,
-        message: err.message,
-        error: err.message,
-        code: err.code,
+        error: { code: err.code, message: err.message },
         ...(err.retryAfterSec ? { retryAfterSec: err.retryAfterSec } : {}),
       },
       {
@@ -52,7 +48,7 @@ export function errorResponse(err: unknown, fallbackMessage = "Something went wr
   }
   console.error("Unhandled API error:", err instanceof Error ? err.message : err);
   return NextResponse.json(
-    { success: false, message: fallbackMessage, error: fallbackMessage, code: "INTERNAL" satisfies ErrorCode },
+    { success: false, error: { code: "INTERNAL" satisfies ErrorCode, message: fallbackMessage } },
     { status: 500 }
   );
 }

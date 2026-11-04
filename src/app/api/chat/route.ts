@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/guards";
 import { requireEnv } from "@/lib/env";
-import { errorResponse } from "@/lib/errors";
+import { requireFeature } from "@/lib/features";
+import { AppError, errorResponse } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseBody } from "@/lib/validation";
 
@@ -24,6 +25,7 @@ Language Policy: Conversational Hinglish. Keep answers short, positive, and dire
 
 export async function POST(req: Request) {
   try {
+    requireFeature("CHAT");
     const user = await requireUser();
     await rateLimit(`chat:${user.email.toLowerCase()}`, 20, 60);
     const { messages } = parseBody(bodySchema, await req.json().catch(() => null));
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
 
     if (!response.ok) {
       console.error("Groq API error status:", response.status);
-      return NextResponse.json({ success: false, error: "Assistant is unavailable right now." }, { status: 502 });
+      throw new AppError(502, "INTERNAL", "Assistant is unavailable right now.");
     }
 
     const data = await response.json();

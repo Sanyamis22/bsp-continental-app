@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# build / tooling artifacts
+*.tsbuildinfo
+graphify-out/

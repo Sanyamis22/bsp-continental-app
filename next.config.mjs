@@ -1,5 +1,23 @@
 /** @type {import('next').NextConfig} */
+// ponytail: script-src keeps 'unsafe-inline' because Next injects inline bootstrap scripts —
+// move to a per-request nonce CSP in proxy.ts to drop it.
+const isDev = process.env.NODE_ENV !== "production";
+const csp = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://checkout.razorpay.com`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com",
+  "frame-src https://api.razorpay.com https://checkout.razorpay.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
 const securityHeaders = [
+  { key: "Content-Security-Policy", value: csp },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -30,7 +48,6 @@ const nextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   async headers() {
-    // ponytail: no CSP yet — needs a Razorpay/inline-script allowlist; add via nonce-based CSP in Phase 5.
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   async redirects() {

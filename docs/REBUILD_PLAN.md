@@ -1,6 +1,6 @@
 # BSP Continental — Full Rebuild Plan
 
-**Status:** Phases 0, 1, 2 done; Phase 3 done for Profile, Requests, Notifications, Leads, Payments, Auth (see checklist below). Phase 4 UI conversion done (every interactive screen uses the kit); TanStack Query hooks and Phase 5 pending. Phase 5 (cleanup) pending.  
+**Status:** Phases 0–5 complete (see checklist below). Remaining items are product backlog, not plan work: browser E2E and Razorpay checkout are manual (`docs/TESTING.md`), and the CSP still allows inline scripts.  
 **Stack today:** Next.js 16.2 / React 19 / TypeScript strict / Mongoose / next-auth v4 / separate verified admin JWT (Option B, jose)  
 **Target:** TypeScript strict · segregated route shells · cohesive domain layer · hardened APIs · consistent UX
 
@@ -11,12 +11,12 @@
 - [x] **Phase 0 — Security:** secret fallbacks removed (fail closed via `requireEnv`); admin JWT verified in `proxy.ts` and APIs (`requireAdmin`); `requireUser` / ownership scoping on requests, notifications, upload, profile, chat, CIBIL; OTPs in Mongo (hashed, TTL, single use, attempt cap, lockout); sliding-window rate limits + resend cooldowns (`lib/rate-limit.ts`, `lib/otp.ts`); server-side prices (`lib/catalog.ts`) and signature-verified payments; debug routes (`test-db`, `wpotpsend`, unused `verify-otp` / `welcome` / `vetting`) deleted; `.env.example` added; baseline security headers.
 - [x] **Phase 1 — TypeScript:** `tsc --noEmit` clean under `strict`, zero `.js` / `.jsx` in `src/`, `npm run typecheck`.
 - [x] **Phase 2 — Route groups:** `(landing-page)`, `(auth)`, `(client-app)`, `(super-admin)/admin/(panel)` layouts own their chrome; `NavShell` deleted; legacy URLs redirect (`next.config.mjs`); admin status clones merged into `/admin/dashboard/requests?status=`.
-- [~] **Phase 3 — Domain:** services + repositories for Profile, Request, Notification, Lead, Payment, Auth. Users: `/api/admin/users` is real (no mock data). Pending: unified `{ error: { code, message } }` response shape (needs a shared client hook), TanStack Query hooks.
+- [x] **Phase 3 — Domain:** services + repositories for Profile, Request, Notification, Lead, Payment, Auth, User, Pricing. Every API replies `{ success: false, error: { code, message } }` on failure (`errorResponse`, client helper `apiError`). `/api/admin/users` is real (no mock data). No route, page or component imports Mongoose.
 - [x] **Phase 4 — UI rebuild / shared kit (screens):** shadcn-style kit in `src/components/ui` (Button incl. gold `accent`, Input, Textarea, Label, FormField, IconInput, NativeSelect, Card, Badge, Table, Skeleton, Separator, Dialog, StatCard, NotificationList; brand tokens in `globals.css`; `components.json` for future `shadcn add`). Converted: auth pages, admin login, client dashboard home / finance / forms / My Requests / notifications / profile, super-admin overview / requests desk / leads / users / pricing / notifications / top bar, and on the landing site the inquiry modal (`InquiryDialog`), contact form (`ContactForm`, one component for home + contact page), CTA buttons and navbar login. Legal pages are text content and only use the kit CTA. `shadcn init` fails here (npm `allow-scripts` setting), so kit files were written by hand on `@base-ui/react`.
-- [ ] **Phase 4 follow-up:** TanStack Query hooks (`useRequests`, `useProfile`, `useNotifications`) to replace the per-page fetch helpers.
+- [x] **Phase 4 follow-up:** TanStack Query hooks `useRequests`, `useProfile` / `useUpdateProfile`, `useNotifications`, `useAdminUsers` (`src/hooks/queries.ts`) back My Requests, profile, both notification inboxes, the requests desk, overview and users pages.
 - [x] **Pricing (product change, outside the original plan):** prices are no longer hardcoded. The super admin edits them at `/admin/dashboard/pricing`; the landing page, service pages and the Razorpay charge all read the same value (`PricingService`, `/api/prices`, `ServicePrice` collection; `lib/catalog.ts` only supplies the starting defaults).
 - [x] **Folder rename (readability):** `(marketing)`→`(landing-page)`, `(app)`→`(client-app)`, `(admin)`→`(super-admin)`, same for `components/*`. URLs did not change.
-- [ ] **Phase 5 — Hardening:** CSP, strip PII `console.log`s, tests, delete leftover orphans.
+- [x] **Phase 5 — Hardening:** CSP + security headers; PII-free logging (no `console.log` left in `src`); sliding-window rate limits on auth, OTP, inquiries, contact, uploads, chat; unit + route-authz tests (`npm test`, 31) and a 51-check API integration suite (`tests/integration`); orphan code removed (duplicate navbar, dead chat UI, test pages, unused `ai` packages, `project-tree.txt`); parked `/api/chat` and `/api/cibil` behind `FEATURE_CHAT` / `FEATURE_CIBIL`; README rewritten.
 
 **Rotate before deploy** (these values were committed in git history): the Gmail app password, the Resiliohub token that was hard-coded in the removed `wpotpsend` route, the admin password and the JWT secret.
 
@@ -304,14 +304,14 @@ Migrate OTP stores to Mongo (`Otp` collection, TTL index). Remove `global.otpCac
 
 ## 10. Success metrics
 
-- [ ] Zero marketing Navbar on `/dashboard/**` and `/admin/**`
-- [ ] Zero admin chrome on `/admin/login` and marketing
-- [ ] `tsc --noEmit` passes; no new JS source files
-- [ ] All sensitive APIs require auth; requests scoped by user id
-- [ ] Single admin requests UI; no duplicate route trees
-- [ ] No secrets in source; `.env.example` complete
-- [ ] Dead links from nav/README resolved
-- [ ] New code follows `AGENTS.md` + `.cursor/rules/*`
+- [x] Zero marketing Navbar on `/dashboard/**` and `/admin/**`
+- [x] Zero admin chrome on `/admin/login` and marketing
+- [x] `tsc --noEmit` passes; no new JS source files
+- [x] All sensitive APIs require auth; requests scoped by user id
+- [x] Single admin requests UI; no duplicate route trees
+- [x] No secrets in source; `.env.example` complete
+- [x] Dead links from nav/README resolved
+- [x] New code follows `AGENTS.md` + `.cursor/rules/*`
 
 ---
 

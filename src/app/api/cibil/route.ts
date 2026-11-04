@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/guards";
 import { requireEnv } from "@/lib/env";
-import { errorResponse } from "@/lib/errors";
+import { requireFeature } from "@/lib/features";
+import { AppError, errorResponse } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
 import { parseBody } from "@/lib/validation";
 
@@ -16,6 +17,7 @@ const bodySchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    requireFeature("CIBIL");
     const user = await requireUser();
     await rateLimit(`cibil:${user.email.toLowerCase()}`, 5, 60 * 60);
     const { pan } = parseBody(bodySchema, await req.json().catch(() => null));
@@ -38,7 +40,7 @@ export async function POST(req: Request) {
     const authData = await authRes.json();
     const token = authData.access_token || authData.data?.access_token;
     if (!token) {
-      return NextResponse.json({ success: false, error: "Verification service authentication failed." }, { status: 502 });
+      throw new AppError(502, "INTERNAL", "Verification service authentication failed.");
     }
 
     // 2. Sandbox accepts one of several payload formats; try until one is not a 400.
@@ -70,7 +72,7 @@ export async function POST(req: Request) {
     }
 
     if (!successResponse) {
-      return NextResponse.json({ success: false, error: "PAN verification was rejected by the service." }, { status: 400 });
+      throw new AppError(400, "BAD_REQUEST", "PAN verification was rejected by the service.");
     }
     return NextResponse.json({ success: true, data: successResponse });
   } catch (error) {
