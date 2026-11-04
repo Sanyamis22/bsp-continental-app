@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiLock, FiArrowRight, FiPhone, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
 import { errorMessage } from "@/types/api";
-import { AuthField } from "@/components/auth/AuthField";
+import { IconInput as AuthField } from "@/components/ui/icon-input";
 import { AuthShell, AuthSpinner } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
 

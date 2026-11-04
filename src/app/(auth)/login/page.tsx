@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { FiPhone, FiLock, FiArrowRight } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
-import { AuthField } from "@/components/auth/AuthField";
+import { IconInput as AuthField } from "@/components/ui/icon-input";
 import { AuthShell, AuthSpinner } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
 
