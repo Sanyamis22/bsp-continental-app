@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { 
   FiArrowLeft, FiClock, FiFileText, FiShield, 
   FiBriefcase, FiRefreshCw, FiExternalLink, FiUser, 
@@ -10,27 +8,21 @@ import {
   FiCheckCircle, FiXCircle, FiTrash2
 } from 'react-icons/fi';
 import Link from 'next/link';
+import type { RequestDTO, RequestDocumentDTO, RequestStatus } from "@/types/request";
+import { errorMessage } from "@/types/api";
 
-export default function AdminMasterDashboard() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+export default function RequestsView({ initialStatus }: { initialStatus: RequestStatus }) {
 
-  const [allRequests, setAllRequests] = useState([]);
+  const [allRequests, setAllRequests] = useState<RequestDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentStatusTab, setCurrentStatusTab] = useState('Pending');
+  const [currentStatusTab, setCurrentStatusTab] = useState<string>(initialStatus);
   const [serviceFilter, setServiceFilter] = useState('ALL');
 
-  const [activeReplyId, setActiveReplyId] = useState(null);
+  const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [replyStatus, setReplyStatus] = useState('In Review');
-  const [replyFile, setReplyFile] = useState(null);
+  const [replyFile, setReplyFile] = useState<File | null>(null);
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
 
   const fetchMasterData = async () => {
     setLoading(true);
@@ -48,12 +40,10 @@ export default function AdminMasterDashboard() {
   };
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchMasterData();
-    }
-  }, [status]);
+    fetchMasterData();
+  }, []);
 
-  const openActionDrawer = (req) => {
+  const openActionDrawer = (req: RequestDTO) => {
     setActiveReplyId(req._id);
     setReplyStatus(req.status === 'Pending' ? 'In Review' : req.status);
     setReplyMessage(req.adminReply?.message || '');
@@ -61,7 +51,7 @@ export default function AdminMasterDashboard() {
   };
 
   // 🚀 INSTANT REMOVE / SHIFT DISPATCHER
-  const handleDecisionDispatch = async (requestId) => {
+  const handleDecisionDispatch = async (requestId: string) => {
     setIsSubmittingReply(true);
 
     let uploadedAdminDoc = { name: '', url: '' };
@@ -85,7 +75,7 @@ export default function AdminMasterDashboard() {
           };
         }
       } catch (uploadErr) {
-        alert("S3 Storage upload failed: " + uploadErr.message);
+        alert("S3 Storage upload failed: " + errorMessage(uploadErr));
         setIsSubmittingReply(false);
         return;
       }
@@ -141,9 +131,9 @@ export default function AdminMasterDashboard() {
     return matchesStatus && matchesService;
   });
 
-  const countByStatus = (statusName) => allRequests.filter(r => (r.status || 'Pending') === statusName).length;
+  const countByStatus = (statusName: string) => allRequests.filter(r => (r.status || 'Pending') === statusName).length;
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center items-center gap-3 font-sans">
         <FiRefreshCw className="w-6 h-6 text-indigo-600 animate-spin" />
@@ -160,7 +150,7 @@ export default function AdminMasterDashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-100 p-6 rounded-3xl shadow-xs">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-500 transition-all">
+              <Link href="/admin/dashboard" className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-500 transition-all">
                 <FiArrowLeft size={16} />
               </Link>
               <div>
@@ -266,10 +256,10 @@ export default function AdminMasterDashboard() {
                   <div className="md:col-span-8 bg-slate-50/70 p-4 rounded-2xl border border-slate-100 space-y-2">
                     <span className="text-[9px] text-slate-400 font-black uppercase block">PAYLOAD DETAILS</span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      {req.details?.ownerName && <div><span className="text-[9px] text-slate-400 font-bold block uppercase">Owner Name</span><p className="font-bold text-slate-900">{req.details.ownerName}</p></div>}
-                      {req.details?.propertyLocation && <div><span className="text-[9px] text-slate-400 font-bold block uppercase">Location / Khasra No</span><p className="font-bold text-slate-900">{req.details.propertyLocation}</p></div>}
-                      {req.details?.bankName && <div><span className="text-[9px] text-slate-400 font-bold block uppercase">Bank Name</span><p className="font-bold text-slate-900">{req.details.bankName}</p></div>}
-                      {req.details?.loanAmount > 0 && <div><span className="text-[9px] text-slate-400 font-bold block uppercase">Loan Amount</span><p className="font-bold text-slate-900 font-mono">₹{req.details.loanAmount?.toLocaleString('en-IN')}</p></div>}
+                      {req.details?.ownerName && <div><span className="text-[9px] text-slate-400 font-bold block uppercase">Owner Name</span><p className="font-bold text-slate-900">{req.details?.ownerName}</p></div>}
+                      {req.details?.propertyLocation && <div><span className="text-[9px] text-slate-400 font-bold block uppercase">Location / Khasra No</span><p className="font-bold text-slate-900">{req.details?.propertyLocation}</p></div>}
+                      {req.details?.bankName && <div><span className="text-[9px] text-slate-400 font-bold block uppercase">Bank Name</span><p className="font-bold text-slate-900">{req.details?.bankName}</p></div>}
+                      {(req.details?.loanAmount ?? 0) > 0 && <div><span className="text-[9px] text-slate-400 font-bold block uppercase">Loan Amount</span><p className="font-bold text-slate-900 font-mono">₹{req.details?.loanAmount?.toLocaleString('en-IN')}</p></div>}
                     </div>
 
                     {req.documentsList && req.documentsList.length > 0 && (
@@ -292,7 +282,7 @@ export default function AdminMasterDashboard() {
                     <p className="text-xs font-bold text-slate-200">"{req.adminReply.message}"</p>
                     {req.adminReply.document?.url && (
                       <div className="pt-1">
-                        <a href={req.adminReply.document.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-500 transition-all">
+                        <a href={req.adminReply?.document?.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-500 transition-all">
                           <FiFileText size={12} /> View Sent Action Document <FiExternalLink size={11} />
                         </a>
                       </div>
@@ -320,7 +310,7 @@ export default function AdminMasterDashboard() {
 
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase text-slate-400">Attach PDF Paper</label>
-                        <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => setReplyFile(e.target.files[0])} className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 outline-none cursor-pointer" />
+                        <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => setReplyFile(e.target.files?.[0] ?? null)} className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 outline-none cursor-pointer" />
                       </div>
                     </div>
 
