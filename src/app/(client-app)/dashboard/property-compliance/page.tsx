@@ -16,12 +16,13 @@ import {
   FiFile, 
   FiPaperclip
 } from 'react-icons/fi';
-import type { RequestDTO, RequestDocumentDTO } from "@/types/request";
-import { apiError, errorMessage } from "@/types/api";
+import type { RequestDocumentDTO } from "@/types/request";
+import { errorMessage } from "@/types/api";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useCreateRequest, useUploadFile } from "@/hooks/queries";
 
 const SERVICES_LIST = [
   { id: "title_verif", name: "Title Verification" },
@@ -41,6 +42,8 @@ const REQUIRED_DOCUMENTS = [
 
 export default function PropertyVettingPage() {
   const { data: session, status } = useSession();
+  const uploadFile = useUploadFile();
+  const createRequest = useCreateRequest();
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -114,24 +117,13 @@ export default function PropertyVettingPage() {
 
     for (const fileItem of selectedFiles) {
       try {
-        const uploadPayload = new FormData();
-        uploadPayload.append('file', fileItem.fileObject as File);
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: uploadPayload
-        });
-
-        const result = await response.json();
-        if (!response.ok || !result.success) throw new Error(apiError(result, `Upload failed`));
-
-        finalUploadedUrls.push({ 
+        const result = await uploadFile.mutateAsync(fileItem.fileObject as File);
+        finalUploadedUrls.push({
           category: fileItem.category,
-          name: result.name || fileItem.name, 
-          url: result.fileUrl || result.url, 
-          size: fileItem.size 
+          name: result.name || fileItem.name,
+          url: result.fileUrl || result.url,
+          size: fileItem.size,
         });
-
       } catch (err) {
         uploadFailed = true;
         setIsSubmitting(false);
@@ -143,27 +135,20 @@ export default function PropertyVettingPage() {
     if (uploadFailed) return;
 
     try {
-      const dbResponse = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userName: ownerNameValue || session.user.name || "Owner",
-          userEmail: session.user.email,
-          userPhone: formData.userPhone,
-          serviceType: "Property Vetting",
-          details: {
-            ownerName: ownerNameValue,
-            propertyLocation: formData.propertyLocation,
-            selectedServices: selectedServices,
-            customMessage: formData.customMessage
-          },
-          documentsList: finalUploadedUrls,
-          status: "Pending"
-        })
+      await createRequest.mutateAsync({
+        userName: ownerNameValue || session.user.name || "Owner",
+        userEmail: session.user.email ?? undefined,
+        userPhone: formData.userPhone,
+        serviceType: "Property Vetting",
+        details: {
+          ownerName: ownerNameValue,
+          propertyLocation: formData.propertyLocation,
+          selectedServices: selectedServices,
+          customMessage: formData.customMessage,
+        },
+        documentsList: finalUploadedUrls,
+        status: "Pending",
       });
-
-      const dbResult = await dbResponse.json();
-      if (!dbResponse.ok || !dbResult.success) throw new Error(apiError(dbResult, "DB transaction fault."));
 
       setIsSubmitting(false);
       setSubmitStatus({ success: true, msg: 'Property Compliance request submitted! Redirecting to your requests...' });

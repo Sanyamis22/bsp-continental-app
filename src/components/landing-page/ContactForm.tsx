@@ -7,7 +7,8 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { apiError, errorMessage } from "@/types/api";
+import { errorMessage } from "@/types/api";
+import { useContactSubmit } from "@/hooks/queries";
 
 const EMPTY = {
   fullName: "",
@@ -20,11 +21,12 @@ const EMPTY = {
 
 /** Public "request a consultation" form. Posts to /api/contact; used on the home page and the contact page. */
 export default function ContactForm() {
+  const contactSubmit = useContactSubmit();
   const [values, setValues] = useState(EMPTY);
   const [agree, setAgree] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const loading = contactSubmit.isPending;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -33,23 +35,14 @@ export default function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(apiError(data, "Failed to submit contact request."));
+      await contactSubmit.mutateAsync(values);
       setSubmitted(true);
       setValues(EMPTY);
       setAgree(false);
     } catch (err) {
       setError(errorMessage(err, "Network error. Please try again."));
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -150,8 +150,8 @@ export default function ServicesCombinedSection() {
 
                   {/* Service Items List */}
                   <ul className="space-y-2.5 pt-2 border-t border-slate-100">
-                    {item.items.map((subItem, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-xs font-semibold text-slate-600 leading-snug">
+                    {item.items.map((subItem) => (
+                      <li key={subItem} className="flex items-start gap-2 text-xs font-semibold text-slate-600 leading-snug">
                         <FiCheckCircle className="text-[#217044] shrink-0 text-sm mt-0.5" />
                         <span>{subItem}</span>
                       </li>

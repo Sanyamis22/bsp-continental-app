@@ -41,8 +41,7 @@ export default function ClientTopBar() {
             className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-slate-200/70 bg-slate-50"
           >
             {image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={image} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
+              <Image src={image} alt="" width={44} height={44} referrerPolicy="no-referrer" className="h-full w-full object-cover" unoptimized />
             ) : (
               <span className="text-base font-black uppercase text-[#217044]">{name.trim().charAt(0)}</span>
             )}

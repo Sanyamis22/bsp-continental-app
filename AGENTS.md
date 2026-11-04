@@ -120,6 +120,7 @@ If a task would weaken authz, refuse and fix the guard instead.
 - Do not mix unrelated refactors with feature work.
 - Do not invent docs the user did not ask for; keep `docs/REBUILD_PLAN.md` status accurate when completing a phase.
 - Code, commits, and PR bodies: normal professional prose (not caveman compression).
+- **Never** add an AI / agent / Cursor / Copilot `Co-authored-by` trailer (or any equivalent co-author credit) on commits. Commits are authored only by the human developer.
 
 ---
 

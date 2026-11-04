@@ -82,9 +82,9 @@ export default function WhyChooseSection() {
           viewport={{ once: true, amount: 0.15 }}
           className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8"
         >
-          {reasons.map((item, idx) => (
+          {reasons.map((item) => (
             <motion.div
-              key={idx}
+              key={item.title}
               variants={cardVariants}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
               className="relative bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 pl-8 sm:pl-10 border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_32px_rgba(243,194,81,0.12)] transition-all flex flex-col justify-center overflow-hidden group cursor-default"

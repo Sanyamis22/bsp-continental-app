@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
   FiRefreshCw, 
   FiPhone, 
@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatCard } from "@/components/ui/stat-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useAdminLeads } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
 import type { InquiryDTO, ContactDTO } from "@/types/lead";
 
@@ -34,43 +35,13 @@ type Lead = Partial<InquiryDTO> &
   };
 
 export default function AdminDashboardLeads() {
-  const [inquiries, setInquiries] = useState<InquiryDTO[]>([]);
-  const [contacts, setContacts] = useState<ContactDTO[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, isFetching, refetch } = useAdminLeads();
+  const inquiries = data?.inquiries ?? [];
+  const contacts = data?.contacts ?? [];
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchLeadsData = async (): Promise<{ inquiries: InquiryDTO[]; contacts: ContactDTO[] } | null> => {
-    try {
-      const res = await fetch("/api/admin/leads");
-      const data = await res.json();
-      return data.success ? { inquiries: data.inquiries || [], contacts: data.contacts || [] } : null;
-    } catch (err) {
-      console.error("Failed to fetch leads", err);
-      return null;
-    }
-  };
-
-  const applyLeads = (data: { inquiries: InquiryDTO[]; contacts: ContactDTO[] } | null) => {
-    if (data) {
-      setInquiries(data.inquiries);
-      setContacts(data.contacts);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    let active = true;
-    fetchLeadsData().then((data) => active && applyLeads(data));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const fetchLeads = () => {
-    setLoading(true);
-    return fetchLeadsData().then(applyLeads);
-  };
+  const fetchLeads = () => refetch();
 
   // Combined and sorted by latest
   const combinedLeads: Lead[] = [
@@ -115,9 +86,9 @@ export default function AdminDashboardLeads() {
           <p className="text-xs font-bold tracking-wider text-primary uppercase">Super admin panel</p>
           <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Leads Desk</h1>
         </div>
-        <Button type="button" onClick={fetchLeads} disabled={loading} className="self-start sm:self-auto">
-          <FiRefreshCw className={loading ? "animate-spin" : ""} />
-          {loading ? "Syncing..." : "Sync Database"}
+        <Button type="button" onClick={fetchLeads} disabled={loading || isFetching} className="self-start sm:self-auto">
+          <FiRefreshCw className={loading || isFetching ? "animate-spin" : ""} />
+          {loading || isFetching ? "Syncing..." : "Sync Database"}
         </Button>
       </div>
 

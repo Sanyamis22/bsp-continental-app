@@ -13,10 +13,12 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { SERVICE_TYPES } from "@/types/request";
 import { cn } from "@/lib/utils";
+import { useAdminLogout } from "@/hooks/queries";
 
 /** Fixed header of the super admin panel: logo, request search, alerts, logout. Login page has none of this. */
 export default function SuperAdminTopBar() {
   const router = useRouter();
+  const adminLogout = useAdminLogout();
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [service, setService] = useState("ALL");
@@ -32,7 +34,7 @@ export default function SuperAdminTopBar() {
 
   const logout = async () => {
     try {
-      await fetch("/api/admin/logout", { method: "POST" });
+      await adminLogout.mutateAsync();
     } finally {
       // Full navigation so every cached admin view is dropped with the cookie.
       window.location.replace("/admin/login");

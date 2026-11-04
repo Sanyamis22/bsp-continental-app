@@ -17,11 +17,12 @@ import {
   FiX,
   FiPaperclip
 } from 'react-icons/fi';
-import { apiError, errorMessage } from "@/types/api";
+import { errorMessage } from "@/types/api";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useCreateRequest, useUploadFile } from "@/hooks/queries";
 
 const CORE_SERVICES = [
   "CIBIL Report Audit & Analysis",
@@ -33,6 +34,8 @@ const CORE_SERVICES = [
 export default function CreditScoreManagementPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const uploadFile = useUploadFile();
+  const createRequest = useCreateRequest();
 
   const [formData, setForm] = useState({
     fullName: session?.user?.name || '',
@@ -64,25 +67,13 @@ export default function CreditScoreManagementPage() {
 
   const uploadFileToS3 = async (file: File | null, label: string) => {
     if (!file) return null;
-    const uploadPayload = new FormData();
-    uploadPayload.append('file', file);
-
-    const uploadRes = await fetch('/api/upload', {
-      method: 'POST',
-      body: uploadPayload,
-    });
-
-    const result = await uploadRes.json();
-    if (uploadRes.ok && result.success) {
-      return {
-        name: `${label} - ${file.name}`,
-        url: result.fileUrl || result.url,
-        size: `${(file.size / 1024).toFixed(1)} KB`,
-        docType: label,
-      };
-    } else {
-      throw new Error(`${label} upload failed.`);
-    }
+    const result = await uploadFile.mutateAsync(file);
+    return {
+      name: `${label} - ${file.name}`,
+      url: result.fileUrl || result.url,
+      size: `${(file.size / 1024).toFixed(1)} KB`,
+      docType: label,
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,34 +101,22 @@ export default function CreditScoreManagementPage() {
 
       const validDocs = uploadedDocs.filter(Boolean);
 
-      const payload = {
-        userName: formData.fullName || session?.user?.name || 'Verified Applicant',
-        userEmail: session?.user?.email,
+      await createRequest.mutateAsync({
+        userName: formData.fullName || session?.user?.name || "Verified Applicant",
+        userEmail: session?.user?.email ?? undefined,
         userPhone: formData.phone,
-        serviceType: 'CIBIL Audit',
+        serviceType: "CIBIL Audit",
         details: {
           panNumber: formData.panNumber,
           dateOfBirth: formData.dob,
           selectedServices: selectedServices,
           customMessage: formData.customMessage,
         },
-        documentsList: validDocs,
-        status: 'Pending',
-      };
-
-      const response = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        documentsList: validDocs.filter((d): d is NonNullable<typeof d> => Boolean(d)),
+        status: "Pending",
       });
-
-      const result = await response.json();
-      if (response.ok && result.success) {
-        setSuccessMsg('Your Credit Score Application has been successfully submitted! Redirecting...');
-        setTimeout(() => router.push('/dashboard/my-requests'), 2000);
-      } else {
-        alert(apiError(result, 'Submission failed'));
-      }
+      setSuccessMsg("Your Credit Score Application has been successfully submitted! Redirecting...");
+      setTimeout(() => router.push("/dashboard/my-requests"), 2000);
     } catch (err) {
       console.error(err);
       alert('Submission error: ' + errorMessage(err));
@@ -255,7 +234,7 @@ export default function CreditScoreManagementPage() {
               const isSelected = selectedServices.includes(serviceName);
               return (
                 <button
-                  key={idx}
+                  key={serviceName}
                   type="button"
                   onClick={() => handleServiceToggle(serviceName)}
                   className={`p-4 rounded-2xl text-left transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[90px] shadow-sm active:scale-95 ${

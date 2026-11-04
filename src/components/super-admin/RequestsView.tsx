@@ -16,12 +16,11 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { queryKeys, useRequests } from '@/hooks/queries';
+import { queryKeys, useDecideRequest, useRequests, useUploadFile } from '@/hooks/queries';
 import { statusBadgeVariant } from '@/lib/request-ui';
 import { cn } from '@/lib/utils';
 import { errorMessage } from '@/types/api';
 import { REQUEST_STATUSES, SERVICE_TYPES, type RequestDTO, type RequestStatus } from '@/types/request';
-import { apiError } from "@/types/api";
 
 const DECISION_STATUSES = REQUEST_STATUSES.filter((s) => s !== 'Pending');
 
@@ -34,6 +33,8 @@ interface RequestsViewProps {
 export default function RequestsView({ initialStatus, initialService, initialQuery }: RequestsViewProps) {
   const queryClient = useQueryClient();
   const { data: allRequests = [], isLoading: loading, isFetching, error: queryError, refetch } = useRequests();
+  const uploadFile = useUploadFile();
+  const decideRequest = useDecideRequest();
   const loadError = queryError instanceof Error ? queryError.message : '';
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [currentStatusTab, setCurrentStatusTab] = useState<string>(initialStatus);
@@ -44,8 +45,8 @@ export default function RequestsView({ initialStatus, initialService, initialQue
   const [replyMessage, setReplyMessage] = useState('');
   const [replyStatus, setReplyStatus] = useState<string>('In Review');
   const [replyFile, setReplyFile] = useState<File | null>(null);
-  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [dialogError, setDialogError] = useState('');
+  const isSubmittingReply = uploadFile.isPending || decideRequest.isPending;
 
   const reload = () => refetch();
 
@@ -59,32 +60,21 @@ export default function RequestsView({ initialStatus, initialService, initialQue
 
   const submitDecision = async () => {
     if (!activeRequest) return;
-    setIsSubmittingReply(true);
     setDialogError('');
 
     try {
       let uploadedAdminDoc = { name: '', url: '' };
       if (replyFile) {
-        const uploadPayload = new FormData();
-        uploadPayload.append('file', replyFile);
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: uploadPayload });
-        const uploadResult = await uploadRes.json();
-        if (!uploadRes.ok || !uploadResult.success) throw new Error(apiError(uploadResult, 'File upload failed.'));
-        uploadedAdminDoc = { name: uploadResult.name || replyFile.name, url: uploadResult.fileUrl || uploadResult.url };
+        const uploadResult = await uploadFile.mutateAsync(replyFile);
+        uploadedAdminDoc = { name: uploadResult.name || replyFile.name, url: uploadResult.fileUrl || uploadResult.url || '' };
       }
 
-      const response = await fetch('/api/requests', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requestId: activeRequest._id,
-          status: replyStatus,
-          adminMessage: replyMessage,
-          adminDocument: uploadedAdminDoc.url ? uploadedAdminDoc : undefined,
-        }),
+      await decideRequest.mutateAsync({
+        requestId: activeRequest._id,
+        status: replyStatus as RequestStatus,
+        adminMessage: replyMessage,
+        adminDocument: uploadedAdminDoc.url ? uploadedAdminDoc : undefined,
       });
-      const result = await response.json();
-      if (!response.ok || !result.success) throw new Error(apiError(result, 'Update failed.'));
 
       queryClient.setQueryData<RequestDTO[]>(queryKeys.requests, (prev = []) =>
         prev.map((item) =>
@@ -104,8 +94,6 @@ export default function RequestsView({ initialStatus, initialService, initialQue
       setActiveRequest(null);
     } catch (err) {
       setDialogError(errorMessage(err));
-    } finally {
-      setIsSubmittingReply(false);
     }
   };
 
@@ -247,9 +235,9 @@ export default function RequestsView({ initialStatus, initialService, initialQue
                   {req.documentsList && req.documentsList.length > 0 && (
                     <div className="flex flex-wrap items-center gap-2 border-t pt-3">
                       <span className="text-xs font-bold text-muted-foreground uppercase">Papers ({req.documentsList.length})</span>
-                      {req.documentsList.map((doc, idx) => (
+                      {req.documentsList.map((doc) => (
                         <a
-                          key={idx}
+                          key={doc.url || doc.name}
                           href={doc.url}
                           target="_blank"
                           rel="noopener noreferrer"

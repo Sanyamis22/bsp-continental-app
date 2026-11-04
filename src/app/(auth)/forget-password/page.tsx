@@ -1,27 +1,29 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiLock, FiArrowRight, FiPhone, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
-import { apiError, errorMessage } from "@/types/api";
+import { errorMessage } from "@/types/api";
 import { IconInput as AuthField } from "@/components/ui/icon-input";
 import { AuthShell, AuthSpinner } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
+import { useForgetFinal, useForgetInit } from "@/hooks/queries";
 
 function ForgetPasswordForm() {
   const router = useRouter();
+  const forgetInit = useForgetInit();
+  const forgetFinal = useForgetFinal();
   const [step, setStep] = useState("phone"); // 'phone' -> 'otp' -> 'password'
-  
+
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
   const canResend = resendTimer <= 0;
+  const loading = forgetInit.isPending || forgetFinal.isPending;
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -36,56 +38,36 @@ function ForgetPasswordForm() {
   }, [step, resendTimer]);
 
   const sendResetOtp = async () => {
-    const res = await fetch("/api/auth/forget-init", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(apiError(data, "Reset processing issue!"));
+    await forgetInit.mutateAsync(phone);
   };
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
     try {
       await sendResetOtp();
       setResendTimer(30);
       setStep("otp");
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleResendOtp = async () => {
     setError("");
-    setLoading(true);
     setOtp("");
     try {
       await sendResetOtp();
       setResendTimer(30);
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleOtpVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
-    try {
-      // Proceed to password reset step once OTP format is entered
-      setStep("password");
-    } catch (err) {
-      setError("Invalid Code.");
-    } finally {
-      setLoading(false);
-    }
+    setStep("password");
   };
 
   const handleFinalReset = async (e: React.FormEvent) => {
@@ -97,21 +79,11 @@ function ForgetPasswordForm() {
       return;
     }
 
-    setLoading(true);
     try {
-      const res = await fetch("/api/auth/forget-final", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, otp, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(apiError(data, "Update database crash!"));
-      
+      await forgetFinal.mutateAsync({ phone, otp, password });
       router.push("/login");
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
-      setLoading(false);
     }
   };
 

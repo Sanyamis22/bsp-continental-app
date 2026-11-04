@@ -156,8 +156,8 @@ export default function FinancePage() {
                       </div>
 
                       <ul className="space-y-2 pt-2">
-                        {service.points.map((pt, idx) => (
-                          <li key={idx} className="text-xs font-medium text-slate-600 flex items-start gap-2">
+                        {service.points.map((pt) => (
+                          <li key={pt} className="text-xs font-medium text-slate-600 flex items-start gap-2">
                             <CheckCircle2 size={13} className="text-[#217044] shrink-0 mt-0.5" />
                             <span>{pt}</span>
                           </li>

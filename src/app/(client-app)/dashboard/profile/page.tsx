@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { FiPhone, FiCreditCard, FiShield, FiCheckCircle } from "react-icons/fi";
 import { errorMessage } from "@/types/api";
@@ -59,10 +60,17 @@ export default function ProfilePage() {
       <Card className="w-full max-w-md gap-0 py-8 shadow-lg">
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center space-y-2 text-center">
-            <div className="flex size-16 items-center justify-center overflow-hidden rounded-full border bg-muted">
+            <div className="relative flex size-16 items-center justify-center overflow-hidden rounded-full border bg-muted">
               {session?.user?.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={session.user.image} alt="Avatar" referrerPolicy="no-referrer" className="size-full object-cover" />
+                <Image
+                  src={session.user.image}
+                  alt="Avatar"
+                  fill
+                  sizes="64px"
+                  referrerPolicy="no-referrer"
+                  className="object-cover"
+                  unoptimized
+                />
               ) : (
                 <span className="text-2xl font-black text-primary uppercase">{session?.user?.name?.charAt(0) || "U"}</span>
               )}

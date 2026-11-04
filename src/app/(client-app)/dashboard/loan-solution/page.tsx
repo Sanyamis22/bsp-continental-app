@@ -5,16 +5,19 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FiArrowLeft, FiFileText, FiUpload, FiX, FiCheck, FiUser, FiDollarSign, FiBriefcase, FiAlertCircle } from 'react-icons/fi';
 import Link from 'next/link';
-import type { RequestDTO, RequestDocumentDTO } from "@/types/request";
-import { apiError, errorMessage } from "@/types/api";
+import type { RequestDocumentDTO } from "@/types/request";
+import { errorMessage } from "@/types/api";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useCreateRequest, useUploadFile } from "@/hooks/queries";
 
 export default function LoanSolutionPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const uploadFile = useUploadFile();
+  const createRequest = useCreateRequest();
 
   const [formData, setFormData] = useState({
     applicantName: session?.user?.name || '',
@@ -58,21 +61,11 @@ export default function LoanSolutionPage() {
     if (selectedFiles.length > 0) {
       for (const fileItem of selectedFiles) {
         try {
-          const uploadPayload = new FormData();
-          uploadPayload.append('file', fileItem.fileObject as File);
-
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: uploadPayload
-          });
-
-          const result = await response.json();
-          if (!response.ok || !result.success) throw new Error(apiError(result, `Upload failed`));
-
-          finalUploadedUrls.push({ 
-            name: result.name || fileItem.name, 
-            url: result.fileUrl || result.url, 
-            size: fileItem.size 
+          const result = await uploadFile.mutateAsync(fileItem.fileObject as File);
+          finalUploadedUrls.push({
+            name: result.name || fileItem.name,
+            url: result.fileUrl || result.url,
+            size: fileItem.size,
           });
         } catch (err) {
           uploadFailed = true;
@@ -87,36 +80,29 @@ export default function LoanSolutionPage() {
 
     // 2. Central API Store (/api/requests)
     try {
-      const dbResponse = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userName: formData.applicantName || session?.user?.name || "Anonymous Applicant",
-          userEmail: session?.user?.email || "user@cginfrax.com",
-          userPhone: formData.userPhone,
-          serviceType: "Loan Rejection Solution",
-          details: {
-            bankName: formData.bankName,
-            loanAmount: Number(formData.loanAmount) || 0,
-            monthlyIncome: Number(formData.monthlyIncome) || 0,
-            rejectionReason: formData.rejectionReason,
-            customMessage: formData.customMessage
-          },
-          documentsList: finalUploadedUrls,
-          status: "Pending"
-        })
+      await createRequest.mutateAsync({
+        userName: formData.applicantName || session?.user?.name || "Anonymous Applicant",
+        userEmail: session?.user?.email || "user@cginfrax.com",
+        userPhone: formData.userPhone,
+        serviceType: "Loan Rejection Solution",
+        details: {
+          bankName: formData.bankName,
+          loanAmount: Number(formData.loanAmount) || 0,
+          monthlyIncome: Number(formData.monthlyIncome) || 0,
+          rejectionReason: formData.rejectionReason,
+          customMessage: formData.customMessage,
+        },
+        documentsList: finalUploadedUrls,
+        status: "Pending",
       });
 
-      const dbResult = await dbResponse.json();
-      if (!dbResponse.ok || !dbResult.success) throw new Error(apiError(dbResult, "DB transaction fault."));
-
       setIsSubmitting(false);
-      setSubmitStatus({ success: true, msg: 'Loan Rejection Appeal Submitted Successfully!' });
+      setSubmitStatus({ success: true, msg: "Loan Rejection Appeal Submitted Successfully!" });
 
-      setFormData({ applicantName: '', userPhone: '', bankName: '', loanAmount: '', monthlyIncome: '', rejectionReason: '', customMessage: '' });
+      setFormData({ applicantName: "", userPhone: "", bankName: "", loanAmount: "", monthlyIncome: "", rejectionReason: "", customMessage: "" });
       setSelectedFiles([]);
 
-      setTimeout(() => router.push('/dashboard/my-requests'), 1500);
+      setTimeout(() => router.push("/dashboard/my-requests"), 1500);
     } catch (dbError) {
       setIsSubmitting(false);
       setSubmitStatus({ success: false, msg: `Database error: ${errorMessage(dbError)}` });
@@ -190,7 +176,7 @@ export default function LoanSolutionPage() {
               {selectedFiles.length > 0 && (
                 <div className="space-y-2 max-h-[140px] overflow-y-auto">
                   {selectedFiles.map((file, idx) => (
-                    <div key={idx} className="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl flex items-center justify-between text-xs font-bold">
+                    <div key={`${file.name}-${file.size}-${idx}`} className="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl flex items-center justify-between text-xs font-bold">
                       <span className="truncate max-w-[120px]">{file.name}</span>
                       <button type="button" aria-label="Remove file" onClick={() => removeFileFromQueue(idx)} className="text-rose-600"><FiX /></button>
                     </div>

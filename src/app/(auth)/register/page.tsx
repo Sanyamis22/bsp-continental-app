@@ -4,15 +4,17 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiArrowRight, FiCheckCircle, FiRefreshCw, FiShield, FiUser, FiPhone, FiLock } from "react-icons/fi";
-import { apiError, errorMessage } from "@/types/api";
+import { errorMessage } from "@/types/api";
 import { IconInput as AuthField } from "@/components/ui/icon-input";
-import { AuthShell, AuthSpinner } from "@/components/auth/AuthShell";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
+import { useRegisterAction } from "@/hooks/queries";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [step, setStep] = useState("details"); 
-  
+  const registerAction = useRegisterAction();
+  const [step, setStep] = useState("details");
+
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -20,8 +22,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  
+  const loading = registerAction.isPending;
+
   const [resendTimer, setResendTimer] = useState(30);
   const canResend = resendTimer <= 0;
 
@@ -37,57 +39,37 @@ export default function RegisterPage() {
     };
   }, [step, resendTimer]);
 
-  const executeAuthAction = async (payload: Record<string, unknown>) => {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(apiError(data, "A network error occurred. Please try again."));
-    return data;
-  };
-
   const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
     try {
-      await executeAuthAction({ action: "INIT", name, phone });
+      await registerAction.mutateAsync({ action: "INIT", name, phone });
       setResendTimer(30);
       setStep("otp");
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleResendOtp = async () => {
     setError("");
-    setLoading(true);
-    setOtp(""); 
+    setOtp("");
     try {
-      await executeAuthAction({ action: "INIT", name, phone });
+      await registerAction.mutateAsync({ action: "INIT", name, phone });
       setResendTimer(30);
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleOtpVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
     try {
-      await executeAuthAction({ action: "VERIFY", phone, otp });
+      await registerAction.mutateAsync({ action: "VERIFY", phone, otp });
       setStep("password");
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -100,14 +82,11 @@ export default function RegisterPage() {
       return;
     }
 
-    setLoading(true);
     try {
-      await executeAuthAction({ action: "FINAL", name, phone, otp, password });
-      router.push("/login"); 
+      await registerAction.mutateAsync({ action: "FINAL", name, phone, otp, password });
+      router.push("/login");
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -91,8 +91,8 @@ export default function MyRequestsPage() {
                   <div className="col-span-full">
                     <dt className="text-[11px] font-bold text-muted-foreground uppercase">Requested services</dt>
                     <dd className="flex flex-wrap gap-1.5 pt-1">
-                      {req.details?.selectedServices?.map((srv, i) => (
-                        <Badge key={i} variant="secondary">{srv}</Badge>
+                      {req.details?.selectedServices?.map((srv) => (
+                        <Badge key={srv} variant="secondary">{srv}</Badge>
                       ))}
                     </dd>
                   </div>
@@ -103,8 +103,8 @@ export default function MyRequestsPage() {
                 <div className="space-y-2">
                   <p className="text-xs font-bold text-muted-foreground uppercase">Your uploaded papers ({req.documentsList.length})</p>
                   <div className="flex flex-wrap gap-2">
-                    {req.documentsList.map((doc, idx) => (
-                      <a key={idx} href={doc.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                    {req.documentsList.map((doc) => (
+                      <a key={doc.url || doc.name} href={doc.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
                         <FiFileText />
                         <span className="max-w-37.5 truncate">{doc.name || 'Document'}</span>
                         <FiExternalLink />

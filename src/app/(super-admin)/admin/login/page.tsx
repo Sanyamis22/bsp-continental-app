@@ -7,42 +7,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiError } from "@/types/api";
+import { errorMessage } from "@/types/api";
+import { useAdminLogin } from "@/hooks/queries";
 
 export default function AdminLoginPage() {
+  const adminLogin = useAdminLogin();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [loading, setLoading] = useState(false);
+  const loading = adminLogin.isPending;
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
-    setLoading(true);
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        setSuccessMsg("Access granted. Opening the console...");
-        // Full navigation so the freshly set cookie is sent with the next request.
-        setTimeout(() => {
-          window.location.href = "/admin/dashboard";
-        }, 400);
-      } else {
-        setErrorMsg(apiError(data, "Invalid Email or Master Password!"));
-      }
-    } catch {
-      setErrorMsg("Network connection error. Please try again.");
-    } finally {
-      setLoading(false);
+      await adminLogin.mutateAsync({ username, password });
+      setSuccessMsg("Access granted. Opening the console...");
+      // Full navigation so the freshly set cookie is sent with the next request.
+      setTimeout(() => {
+        window.location.href = "/admin/dashboard";
+      }, 400);
+    } catch (err) {
+      setErrorMsg(errorMessage(err, "Invalid Email or Master Password!"));
     }
   };
 

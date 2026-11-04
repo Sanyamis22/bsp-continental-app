@@ -18,8 +18,9 @@ import {
   FiBriefcase,
   FiDollarSign
 } from "react-icons/fi";
-import { apiError, errorMessage } from "@/types/api";
+import { errorMessage } from "@/types/api";
 import { formatInr, useServicePrices } from "@/hooks/useServicePrices";
+import { useCreateOrder, useSubmitInquiry, useVerifyPayment } from "@/hooks/queries";
 import InquiryDialog from "@/components/landing-page/InquiryDialog";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
@@ -75,6 +76,9 @@ export default function FinancialConsultingPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+  const submitInquiry = useSubmitInquiry();
+  const createOrder = useCreateOrder();
+  const verifyPayment = useVerifyPayment();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -118,52 +122,32 @@ export default function FinancialConsultingPage() {
     setStatusMessage("");
 
     try {
-      // 1. Call backend inquiry endpoint to create database record and generate Razorpay Order
-      const res = await fetch("/api/inquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          service: "Financial Consultancy",
-        }),
+      const data = await submitInquiry.mutateAsync({
+        ...formData,
+        service: "Financial Consultancy",
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(apiError(data, "Failed to initialize inquiry payment order."));
+      const orderData = await createOrder.mutateAsync({ inquiryId: data.inquiryId });
+      if (!orderData.order_id || !orderData.key_id) {
+        throw new Error("Order creation failed.");
       }
 
-      // 2. Create the Razorpay order server-side (amount comes from the stored inquiry)
-      const orderRes = await fetch("/api/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inquiryId: data.inquiryId }),
-      });
-      const orderData = await orderRes.json();
-      if (!orderRes.ok || !orderData.order_id || !orderData.key_id) {
-        throw new Error(apiError(orderData, "Order creation failed."));
-      }
-
-      // 3. Open Real Razorpay Payment Gateway Popup
+      // Open Real Razorpay Payment Gateway Popup
       if (typeof window !== "undefined" && window.Razorpay) {
         const options: RazorpayOptions = {
-          key: orderData.key_id,
-          amount: orderData.amount,
-          currency: orderData.currency || "INR",
+          key: orderData.key_id as string,
+          amount: orderData.amount as number,
+          currency: (orderData.currency as string) || "INR",
           name: "BSP Continental Pvt Ltd",
           description: "Financial Consultancy Advisory Fee",
-          order_id: orderData.order_id,
+          order_id: orderData.order_id as string,
           handler: async function (response: RazorpaySuccessResponse) {
             try {
-              await fetch("/api/verify-payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_signature: response.razorpay_signature,
-                  inquiryId: data.inquiryId
-                }),
+              await verifyPayment.mutateAsync({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                inquiryId: data.inquiryId,
               });
             } catch (err) {
               console.error("Verification notice:", err);
@@ -273,8 +257,8 @@ export default function FinancialConsultingPage() {
 
         {/* 3 Core Scope Highlights */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 border-b border-slate-200 pb-12">
-          {modulesList.map((m, idx) => (
-            <div key={idx} className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2.5">
+          {modulesList.map((m) => (
+            <div key={m.title} className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2.5">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#217044] flex items-center justify-center">
                 {m.icon}
               </div>
@@ -294,8 +278,8 @@ export default function FinancialConsultingPage() {
             SERVICES INCLUDE
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-            {servicesInclude.map((serviceItem, idx) => (
-              <div key={idx} className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-200/80 shadow-xs">
+            {servicesInclude.map((serviceItem) => (
+              <div key={serviceItem} className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-200/80 shadow-xs">
                 <span className="w-2 h-2 rounded-full bg-[#217044] shrink-0" />
                 <span className="text-xs font-bold text-slate-800 tracking-tight">
                   {serviceItem}
@@ -311,8 +295,8 @@ export default function FinancialConsultingPage() {
             BENEFITS
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {benefits.map((benefit, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+            {benefits.map((benefit) => (
+              <div key={benefit} className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
                 <FiCheckCircle className="text-[#217044] text-lg shrink-0" />
                 <span className="text-sm font-bold text-slate-800">
                   {benefit}

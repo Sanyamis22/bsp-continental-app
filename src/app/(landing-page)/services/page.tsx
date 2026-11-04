@@ -376,8 +376,8 @@ export default function ServicesCombinedSection() {
               </div>
 
               <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
-                {snapshotPoints.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-[#0a331f]/60 border border-emerald-500/15 rounded-xl px-3 py-2 text-[11px] font-semibold text-emerald-100/90">
+                {snapshotPoints.map((item) => (
+                  <div key={item} className="flex items-center gap-2 bg-[#0a331f]/60 border border-emerald-500/15 rounded-xl px-3 py-2 text-[11px] font-semibold text-emerald-100/90">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#f3c251] shrink-0" />
                     <span className="truncate">{item}</span>
                   </div>
@@ -470,8 +470,8 @@ export default function ServicesCombinedSection() {
                     </div>
 
                     <ul className="space-y-3 pt-3 border-t border-slate-100">
-                      {item.items.map((subItem, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5 text-xs font-semibold text-slate-600 leading-snug">
+                      {item.items.map((subItem) => (
+                        <li key={subItem} className="flex items-start gap-2.5 text-xs font-semibold text-slate-600 leading-snug">
                           <span className="w-4 h-4 rounded-full bg-emerald-100 text-[#217044] flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
                             <FiCheck strokeWidth={3} />
                           </span>
@@ -566,8 +566,8 @@ export default function ServicesCombinedSection() {
                           Service Scope
                         </span>
                         <ul className="space-y-2">
-                          {currentService.scopeItems.map((item, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-xs font-semibold text-slate-700">
+                          {currentService.scopeItems.map((item) => (
+                            <li key={item} className="flex items-start gap-2.5 text-xs font-semibold text-slate-700">
                               <FiCheckCircle className="text-[#217044] shrink-0 text-sm mt-0.5" />
                               <span>{item}</span>
                             </li>
@@ -580,8 +580,8 @@ export default function ServicesCombinedSection() {
                           Required Documents
                         </span>
                         <ul className="space-y-2">
-                          {currentService.documents.map((doc, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-xs font-semibold text-slate-700">
+                          {currentService.documents.map((doc) => (
+                            <li key={doc} className="flex items-start gap-2.5 text-xs font-semibold text-slate-700">
                               <span className="w-1.5 h-1.5 rounded-full bg-[#f3c251] shrink-0 mt-1.5" />
                               <span>{doc}</span>
                             </li>
@@ -604,10 +604,10 @@ export default function ServicesCombinedSection() {
                       </p>
                       
                       <div className="space-y-3 pt-2 border-t border-slate-200">
-                        {currentService.processSteps.map((step, idx) => (
-                          <div key={idx} className="flex items-center gap-3 text-xs font-bold text-slate-700">
+                        {currentService.processSteps.map((step, stepNo) => (
+                          <div key={step} className="flex items-center gap-3 text-xs font-bold text-slate-700">
                             <span className="w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center font-mono text-[10px] text-slate-600 shrink-0">
-                              0{idx + 1}
+                              0{stepNo + 1}
                             </span>
                             <span>{step}</span>
                           </div>
@@ -637,8 +637,8 @@ export default function ServicesCombinedSection() {
                     </h3>
 
                     <div className="space-y-3 pt-1">
-                      {currentService.faqs.map((faq, idx) => (
-                        <div key={idx} className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 space-y-1.5">
+                      {currentService.faqs.map((faq) => (
+                        <div key={faq.q} className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 space-y-1.5">
                           <div className="flex items-center gap-2 font-black text-sm text-[#0F1E11]">
                             <FiHelpCircle className="text-[#217044] shrink-0 text-base" />
                             <span>{faq.q}</span>

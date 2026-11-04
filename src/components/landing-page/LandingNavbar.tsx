@@ -277,7 +277,7 @@ export default function Navbar() {
             >
               {isLoggedIn ? (
                 userImageUrl ? (
-                  <img src={userImageUrl} alt="Profile" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                  <Image src={userImageUrl} alt="Profile" width={44} height={44} referrerPolicy="no-referrer" className="w-full h-full object-cover" unoptimized />
                 ) : (
                   <span className="text-base font-black uppercase select-none" style={{ color: brandColor }}>
                     {userName.trim().charAt(0)}
@@ -360,7 +360,7 @@ export default function Navbar() {
                     >
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-white border border-slate-200 flex items-center justify-center shrink-0">
                         {userImageUrl ? (
-                          <img src={userImageUrl} alt="Profile" className="w-full h-full object-cover" />
+                          <Image src={userImageUrl} alt="Profile" width={40} height={40} referrerPolicy="no-referrer" className="w-full h-full object-cover" unoptimized />
                         ) : (
                           <span className="text-sm font-black text-[#217044]">{userName.trim().charAt(0)}</span>
                         )}

@@ -16,7 +16,8 @@ import {
   FiSend,
   FiCheck
 } from "react-icons/fi";
-import { apiError, errorMessage } from "@/types/api";
+import { errorMessage } from "@/types/api";
+import { useCreateOrder, useSubmitInquiry, useVerifyPayment } from "@/hooks/queries";
 import InquiryDialog from "@/components/landing-page/InquiryDialog";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
@@ -44,6 +45,9 @@ export default function CibilManagementPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+  const submitInquiry = useSubmitInquiry();
+  const createOrder = useCreateOrder();
+  const verifyPayment = useVerifyPayment();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -93,44 +97,31 @@ export default function CibilManagementPage() {
     setStatusMessage("");
 
     try {
-      const inqRes = await fetch("/api/inquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          service: "CIBIL Score Management",
-        }),
+      const inqData = await submitInquiry.mutateAsync({
+        ...formData,
+        service: "CIBIL Score Management",
       });
-      const inqData = await inqRes.json();
-      if (!inqRes.ok || !inqData.success) {
-        throw new Error(apiError(inqData, "Failed to submit inquiry details."));
-      }
 
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
         throw new Error("Razorpay gateway failed to load. Please check your connection.");
       }
 
-      const orderRes = await fetch("/api/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          serviceType: "CIBIL Score Management",
-          inquiryId: inqData.inquiryId
-        }),
+      const orderData = await createOrder.mutateAsync({
+        serviceType: "CIBIL Score Management",
+        inquiryId: inqData.inquiryId,
       });
-      const orderData = await orderRes.json();
-      if (!orderRes.ok || !orderData.order_id || !orderData.key_id) {
-        throw new Error(apiError(orderData, "Order creation failed."));
+      if (!orderData.order_id || !orderData.key_id) {
+        throw new Error("Order creation failed.");
       }
 
       const options = {
-        key: orderData.key_id,
-        amount: orderData.amount,
-        currency: orderData.currency || "INR",
+        key: orderData.key_id as string,
+        amount: orderData.amount as number,
+        currency: (orderData.currency as string) || "INR",
         name: "BSP CCONTINENTAL PVT LTD",
         description: "CIBIL Score Diagnostic Consultation",
-        order_id: orderData.order_id,
+        order_id: orderData.order_id as string,
         prefill: {
           name: formData.name || session?.user?.name || "Client",
           email: formData.email || session?.user?.email || "client@example.com",
@@ -140,23 +131,14 @@ export default function CibilManagementPage() {
         handler: async function (response: RazorpaySuccessResponse) {
           try {
             setStatusMessage("Verifying transaction...");
-            const verifyRes = await fetch("/api/verify-payment", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...response,
-                inquiryId: inqData.inquiryId
-              }),
+            await verifyPayment.mutateAsync({
+              ...response,
+              inquiryId: inqData.inquiryId,
             });
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              setIsModalOpen(false);
-              router.push("/dashboard/credit-score-management");
-            } else {
-              setStatusMessage("Payment verification failed. Please contact our desk.");
-            }
+            setIsModalOpen(false);
+            router.push("/dashboard/credit-score-management");
           } catch (err) {
-            setStatusMessage("Network error during verification.");
+            setStatusMessage("Payment verification failed. Please contact our desk.");
           } finally {
             setLoading(false);
           }

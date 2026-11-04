@@ -199,8 +199,8 @@ export default function AboutPage() {
             THE BENCHMARK
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {pillars.map((item, idx) => (
-              <div key={idx} className="flex items-start gap-3.5">
+            {pillars.map((item) => (
+              <div key={item.title} className="flex items-start gap-3.5">
                 <FiCheckCircle className="text-lg text-[#217044] shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">{item.title}</h3>

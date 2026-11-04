@@ -77,8 +77,8 @@ export default function Footer() {
               Services
             </h3>
             <ul className="space-y-2 text-xs sm:text-[13px] text-white/85">
-              {servicesLinks.map((item, idx) => (
-                <li key={idx}>
+              {servicesLinks.map((item) => (
+                <li key={item.href}>
                   <Link 
                     href={item.href} 
                     className="hover:text-[#f3c251] transition-colors block"
@@ -96,8 +96,8 @@ export default function Footer() {
               Company
             </h3>
             <ul className="space-y-2 text-xs sm:text-[13px] text-white/85">
-              {companyLinks.map((item, idx) => (
-                <li key={idx}>
+              {companyLinks.map((item) => (
+                <li key={item.href}>
                   <Link 
                     href={item.href} 
                     className="hover:text-[#f3c251] transition-colors block"

@@ -7,42 +7,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { apiError, errorMessage } from "@/types/api";
+import { usePrices, useUpdatePrice } from "@/hooks/queries";
+import { errorMessage } from "@/types/api";
 import type { ServicePriceDTO } from "@/types/pricing";
 
 type RowState = { value: string; saving: boolean; message?: { ok: boolean; text: string } };
 
 export default function PricingManager() {
+  const { data, isLoading, error: loadQueryError, refetch, isFetching } = usePrices();
+  const updatePrice = useUpdatePrice();
   const [prices, setPrices] = useState<ServicePriceDTO[] | null>(null);
   const [rows, setRows] = useState<Record<string, RowState>>({});
-  const [loadError, setLoadError] = useState("");
-
-  const applyPrices = (data: ServicePriceDTO[]) => {
-    setPrices(data);
-    setRows(Object.fromEntries(data.map((p) => [p.slug, { value: String(p.amountInr), saving: false }])));
-  };
-
-  const fetchPrices = async (): Promise<ServicePriceDTO[]> => {
-    const res = await fetch("/api/prices", { cache: "no-store" });
-    const json = await res.json();
-    if (!res.ok || !json.data) throw new Error(apiError(json, "Could not load prices."));
-    return json.data;
-  };
 
   useEffect(() => {
-    let active = true;
-    fetchPrices()
-      .then((data) => active && applyPrices(data))
-      .catch((err) => active && setLoadError(errorMessage(err)));
-    return () => {
-      active = false;
-    };
-  }, []);
+    if (!data) return;
+    setPrices(data);
+    setRows((prev) => {
+      const next: Record<string, RowState> = {};
+      for (const p of data) {
+        next[p.slug] = prev[p.slug]?.message
+          ? { ...prev[p.slug], value: prev[p.slug].value === String(p.amountInr) ? String(p.amountInr) : prev[p.slug].value }
+          : { value: String(p.amountInr), saving: false };
+      }
+      return next;
+    });
+  }, [data]);
 
-  const reload = () => {
-    setLoadError("");
-    fetchPrices().then(applyPrices).catch((err) => setLoadError(errorMessage(err)));
-  };
+  const loadError = loadQueryError instanceof Error ? loadQueryError.message : "";
 
   const patchRow = (slug: string, patch: Partial<RowState>) =>
     setRows((prev) => ({ ...prev, [slug]: { ...prev[slug], ...patch } }));
@@ -51,14 +42,8 @@ export default function PricingManager() {
     const amountInr = Number(rows[slug].value);
     patchRow(slug, { saving: true, message: undefined });
     try {
-      const res = await fetch("/api/admin/prices", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, amountInr }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(apiError(json, "Could not save price."));
-      const saved: ServicePriceDTO = json.data;
+      const json = await updatePrice.mutateAsync({ slug, amountInr });
+      const saved = json.data;
       setPrices((prev) => prev?.map((p) => (p.slug === slug ? saved : p)) ?? prev);
       patchRow(slug, { saving: false, value: String(saved.amountInr), message: { ok: true, text: "Saved. Live now." } });
     } catch (err) {
@@ -82,7 +67,7 @@ export default function PricingManager() {
             <CardTitle>Prices (INR)</CardTitle>
             <CardDescription>Whole rupees only. Razorpay is charged this amount.</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={reload}>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <FiRefreshCw /> Reload
           </Button>
         </CardHeader>
@@ -93,7 +78,7 @@ export default function PricingManager() {
             </div>
           )}
 
-          {!prices && !loadError ? (
+          {isLoading && !prices ? (
             <div className="space-y-3">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
