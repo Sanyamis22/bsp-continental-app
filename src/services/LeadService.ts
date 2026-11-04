@@ -1,11 +1,11 @@
 import { LeadRepository, type NewContact } from "@/repositories/LeadRepository";
-import { priceForService } from "@/lib/catalog";
+import { PricingService } from "@/services/PricingService";
 import { badRequest } from "@/lib/errors";
 
 export const LeadService = {
-  /** The price is always looked up server-side; the caller never supplies an amount. */
+  /** The price is always read server-side from PricingService; the caller never supplies an amount. */
   async submitInquiry(input: { name: string; phone: string; email: string; service: string; message: string }) {
-    const amount = priceForService(input.service);
+    const amount = await PricingService.priceForService(input.service);
     if (amount === null) throw badRequest("Unknown service.");
     return LeadRepository.createInquiry({ ...input, amount });
   },
