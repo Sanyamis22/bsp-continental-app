@@ -47,6 +47,13 @@ const legacyRedirects = [
 const nextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
+  images: {
+    // OAuth / Google avatars. Unknown hosts still use Image with `unoptimized`.
+    remotePatterns: [
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "**.googleusercontent.com" },
+    ],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

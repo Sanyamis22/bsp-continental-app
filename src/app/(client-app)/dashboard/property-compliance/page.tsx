@@ -75,6 +75,7 @@ export default function PropertyVettingPage() {
     if (files.length === 0) return;
 
     const mapped = files.map(file => ({
+      clientId: crypto.randomUUID(),
       category: categoryLabel,
       name: file.name,
       size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
@@ -85,8 +86,8 @@ export default function PropertyVettingPage() {
     e.target.value = ''; 
   };
 
-  const removeFileFromQueue = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  const removeFileFromQueue = (clientId: string) => {
+    setSelectedFiles(prev => prev.filter((f) => f.clientId !== clientId));
   };
 
   const handleVettingSubmit = async (e: React.FormEvent) => {
@@ -137,7 +138,6 @@ export default function PropertyVettingPage() {
     try {
       await createRequest.mutateAsync({
         userName: ownerNameValue || session.user.name || "Owner",
-        userEmail: session.user.email ?? undefined,
         userPhone: formData.userPhone,
         serviceType: "Property Vetting",
         details: {
@@ -147,7 +147,6 @@ export default function PropertyVettingPage() {
           customMessage: formData.customMessage,
         },
         documentsList: finalUploadedUrls,
-        status: "Pending",
       });
 
       setIsSubmitting(false);
@@ -403,20 +402,17 @@ export default function PropertyVettingPage() {
 
                       {isUploaded && (
                         <div className="space-y-1.5 pt-1">
-                          {uploadedForThisDoc.map((file, fileIdx) => {
-                            const globalIdx = selectedFiles.findIndex(f => f === file);
-                            return (
-                              <div key={fileIdx} className="bg-white px-3.5 py-2 rounded-xl flex items-center justify-between text-xs font-bold text-slate-800 shadow-2xs">
+                          {uploadedForThisDoc.map((file) => (
+                              <div key={file.clientId} className="bg-white px-3.5 py-2 rounded-xl flex items-center justify-between text-xs font-bold text-slate-800 shadow-2xs">
                                 <div className="flex items-center gap-1.5 truncate max-w-[85%]">
                                   <FiPaperclip className="text-[#217044] shrink-0" size={12} />
                                   <span className="truncate text-[10px]">{file.name}</span>
                                 </div>
-                                <button type="button" aria-label="Remove file" onClick={() => removeFileFromQueue(globalIdx)} className="text-slate-400 hover:text-rose-600 transition-all cursor-pointer">
+                                <button type="button" aria-label="Remove file" onClick={() => removeFileFromQueue(file.clientId!)} className="text-slate-400 hover:text-rose-600 transition-all cursor-pointer">
                                   <FiX size={14} />
                                 </button>
                               </div>
-                            );
-                          })}
+                          ))}
                         </div>
                       )}
                     </div>

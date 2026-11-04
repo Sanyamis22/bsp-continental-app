@@ -104,7 +104,7 @@ export default function MyRequestsPage() {
                   <p className="text-xs font-bold text-muted-foreground uppercase">Your uploaded papers ({req.documentsList.length})</p>
                   <div className="flex flex-wrap gap-2">
                     {req.documentsList.map((doc) => (
-                      <a key={doc.url || doc.name} href={doc.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                      <a key={`${req._id}-${doc.url ?? ""}-${doc.name ?? ""}`} href={doc.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
                         <FiFileText />
                         <span className="max-w-37.5 truncate">{doc.name || 'Document'}</span>
                         <FiExternalLink />

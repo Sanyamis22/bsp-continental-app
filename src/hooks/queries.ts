@@ -8,40 +8,48 @@ import type { ServicePriceDTO } from "@/types/pricing";
 import type { CreateRequestInput, DecideRequestInput, RequestDTO } from "@/types/request";
 import type { ProfileDTO, UserDTO } from "@/types/user";
 
+export type DataScope = "user" | "admin";
+
 export const queryKeys = {
-  requests: ["requests"] as const,
-  notifications: ["notifications"] as const,
+  requests: (scope: DataScope = "user") => ["requests", scope] as const,
+  notifications: (scope: DataScope = "user") => ["notifications", scope] as const,
   profile: ["profile"] as const,
   adminUsers: ["admin", "users"] as const,
   prices: ["prices"] as const,
   adminLeads: ["admin", "leads"] as const,
 };
 
-/** Requests visible to the caller: a client's own, or all of them for the admin. */
-export function useRequests() {
+function scopedUrl(path: string, scope: DataScope): string {
+  return scope === "admin" ? `${path}?scope=admin` : path;
+}
+
+/** Requests visible to the caller: pass `admin` from the super-admin panel only. */
+export function useRequests(scope: DataScope = "user") {
   return useQuery({
-    queryKey: queryKeys.requests,
-    queryFn: async () => (await apiRequest<{ data: RequestDTO[] }>("/api/requests")).data ?? [],
+    queryKey: queryKeys.requests(scope),
+    queryFn: async () => (await apiRequest<{ data: RequestDTO[] }>(scopedUrl("/api/requests", scope))).data ?? [],
   });
 }
 
-/** Notification inbox of the caller (client inbox, or the shared admin inbox). */
-export function useNotifications(pollMs?: number) {
+/** Notification inbox: pass `admin` from the super-admin panel only. */
+export function useNotifications(pollMs?: number, scope: DataScope = "user") {
   return useQuery({
-    queryKey: queryKeys.notifications,
-    queryFn: async () => (await apiRequest<{ data: NotificationDTO[] }>("/api/notifications")).data ?? [],
+    queryKey: queryKeys.notifications(scope),
+    queryFn: async () => (await apiRequest<{ data: NotificationDTO[] }>(scopedUrl("/api/notifications", scope))).data ?? [],
     refetchInterval: pollMs,
   });
 }
 
-export function useMarkNotificationRead() {
+export function useMarkNotificationRead(scope: DataScope = "user") {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (notificationId: string) =>
-      apiRequest("/api/notifications", {
+      apiRequest(scopedUrl("/api/notifications", scope), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notificationId }),
       }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.notifications(scope) }),
   });
 }
 
@@ -119,13 +127,13 @@ export function useUploadFile() {
 export function useCreateRequest() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: CreateRequestInput & { userEmail?: string; status?: string }) =>
+    mutationFn: (input: CreateRequestInput) =>
       apiRequest("/api/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.requests }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.requests("user") }),
   });
 }
 
@@ -138,7 +146,7 @@ export function useDecideRequest() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.requests }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.requests("admin") }),
   });
 }
 

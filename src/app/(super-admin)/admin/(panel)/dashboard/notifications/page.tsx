@@ -8,8 +8,8 @@ import type { NotificationDTO } from "@/types/notification";
 export default function AdminNotificationsPage() {
   const router = useRouter();
 
-  const { data: items = [], isLoading, isFetching, error, refetch } = useNotifications(15_000);
-  const markRead = useMarkNotificationRead();
+  const { data: items = [], isLoading, isFetching, error, refetch } = useNotifications(15_000, "admin");
+  const markRead = useMarkNotificationRead("admin");
 
   const open = async (notif: NotificationDTO) => {
     // Best-effort: navigate even if marking as read fails.

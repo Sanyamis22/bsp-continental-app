@@ -31,7 +31,7 @@ const FILTERS = [
 
 export default function AdminDashboardAnalytics() {
   const router = useRouter();
-  const { data: requests = [], isLoading, isFetching, error: loadError, refetch } = useRequests();
+  const { data: requests = [], isLoading, isFetching, error: loadError, refetch } = useRequests("admin");
   const error = loadError instanceof Error ? loadError.message : '';
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<(typeof FILTERS)[number]['id']>('ALL');

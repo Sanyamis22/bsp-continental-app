@@ -11,17 +11,24 @@ export interface SessionUser {
   role: string;
 }
 
-/** Returns the signed-in user or throws 401. */
-export async function requireUser(): Promise<SessionUser> {
+/** Returns the signed-in user or null (never throws on a missing session). */
+export async function getUser(): Promise<SessionUser | null> {
   const session = await getServerSession(authOptions);
   const email = session?.user?.email?.trim();
-  if (!session?.user || !email) throw unauthorized();
+  if (!session?.user || !email) return null;
   return {
     id: session.user.id ?? "",
     email,
     name: session.user.name ?? "",
     role: session.user.role ?? "user",
   };
+}
+
+/** Returns the signed-in user or throws 401. */
+export async function requireUser(): Promise<SessionUser> {
+  const user = await getUser();
+  if (!user) throw unauthorized();
+  return user;
 }
 
 /** Returns verified admin claims or null (never throws on a missing/invalid cookie). */

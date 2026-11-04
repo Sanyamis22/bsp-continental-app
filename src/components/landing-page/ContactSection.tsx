@@ -1,7 +1,7 @@
 "use client";
 
 import { FiArrowRight } from "react-icons/fi";
-import ContactForm from "@/components/landing-page/ContactForm";
+import ContactForm from "@/components/shared/ContactForm";
 
 export default function ContactSection() {
   return (

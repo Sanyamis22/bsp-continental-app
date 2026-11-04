@@ -10,7 +10,7 @@ import {
   FiCheckCircle
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
-import ContactForm from "@/components/landing-page/ContactForm";
+import ContactForm from "@/components/shared/ContactForm";
 
 export default function ContactPage() {
   return (

@@ -7,6 +7,7 @@ vi.mock("@/lib/auth/guards", () => ({
   requireUser: vi.fn(deny),
   requireAdmin: vi.fn(deny),
   getAdmin: vi.fn(() => Promise.resolve(null)),
+  getUser: vi.fn(() => Promise.resolve(null)),
 }));
 const services = vi.hoisted(() => ({ touched: vi.fn() }));
 vi.mock("@/services/RequestService", () => ({ RequestService: new Proxy({}, { get: () => services.touched }) }));
@@ -40,7 +41,7 @@ describe("anonymous callers are rejected before any service runs", () => {
   it("notifications and profile", async () => {
     const n = await import("@/app/api/notifications/route");
     const p = await import("@/app/api/user/profile/route");
-    expect((await n.GET()).status).toBe(401);
+    expect((await n.GET(json({}, "GET"))).status).toBe(401);
     expect((await p.GET()).status).toBe(401);
     expect((await p.PUT(json({}, "PUT"))).status).toBe(401);
   });

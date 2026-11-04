@@ -18,6 +18,8 @@ export interface RequestDocumentDTO {
   fileObject?: File;
   /** Client-only: checklist category label. */
   category?: string;
+  /** Client-only: stable React list key before upload. */
+  clientId?: string;
 }
 
 export interface RequestDetailsDTO {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   FiAlertCircle, FiArrowLeft, FiCheckCircle, FiExternalLink, FiFileText, FiMail,
@@ -16,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { queryKeys, useDecideRequest, useRequests, useUploadFile } from '@/hooks/queries';
+import { useDecideRequest, useRequests, useUploadFile } from '@/hooks/queries';
 import { statusBadgeVariant } from '@/lib/request-ui';
 import { cn } from '@/lib/utils';
 import { errorMessage } from '@/types/api';
@@ -31,8 +30,7 @@ interface RequestsViewProps {
 }
 
 export default function RequestsView({ initialStatus, initialService, initialQuery }: RequestsViewProps) {
-  const queryClient = useQueryClient();
-  const { data: allRequests = [], isLoading: loading, isFetching, error: queryError, refetch } = useRequests();
+  const { data: allRequests = [], isLoading: loading, isFetching, error: queryError, refetch } = useRequests("admin");
   const uploadFile = useUploadFile();
   const decideRequest = useDecideRequest();
   const loadError = queryError instanceof Error ? queryError.message : '';
@@ -76,20 +74,6 @@ export default function RequestsView({ initialStatus, initialService, initialQue
         adminDocument: uploadedAdminDoc.url ? uploadedAdminDoc : undefined,
       });
 
-      queryClient.setQueryData<RequestDTO[]>(queryKeys.requests, (prev = []) =>
-        prev.map((item) =>
-          item._id === activeRequest._id
-            ? {
-                ...item,
-                status: replyStatus,
-                adminReply: {
-                  message: replyMessage,
-                  document: uploadedAdminDoc.url ? uploadedAdminDoc : item.adminReply?.document,
-                },
-              }
-            : item
-        )
-      );
       setNotice({ ok: true, text: `Request marked as ${replyStatus}.` });
       setActiveRequest(null);
     } catch (err) {
@@ -237,7 +221,7 @@ export default function RequestsView({ initialStatus, initialService, initialQue
                       <span className="text-xs font-bold text-muted-foreground uppercase">Papers ({req.documentsList.length})</span>
                       {req.documentsList.map((doc) => (
                         <a
-                          key={doc.url || doc.name}
+                          key={`${req._id}-${doc.url ?? ""}-${doc.name ?? ""}`}
                           href={doc.url}
                           target="_blank"
                           rel="noopener noreferrer"

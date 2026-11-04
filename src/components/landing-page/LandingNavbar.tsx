@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
 import { buttonVariants } from "@/components/ui/button";
@@ -30,8 +31,13 @@ import {
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: session, status } = useSession();
+  const logout = () => {
+    queryClient.clear();
+    void signOut({ callbackUrl: "/login" });
+  };
   const [isOpen, setIsOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
@@ -291,7 +297,7 @@ export default function Navbar() {
             {isLoggedIn && (
               <button
                 type="button"
-                onClick={() => signOut({ callbackUrl: "/login" })}
+                onClick={logout}
                 className="hidden md:flex w-11 h-11 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-500 hover:text-rose-600 items-center justify-center transition-all active:scale-95 border border-rose-100/40 cursor-pointer"
                 title="Logout"
               >
@@ -375,7 +381,7 @@ export default function Navbar() {
                       type="button"
                       onClick={() => {
                         setIsOpen(false);
-                        signOut({ callbackUrl: "/login" });
+                        logout();
                       }}
                       className="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors shrink-0 cursor-pointer"
                       title="Logout"

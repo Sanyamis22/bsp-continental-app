@@ -3,11 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { FiBell, FiLogOut } from "react-icons/fi";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export default function ClientTopBar() {
+  const queryClient = useQueryClient();
   const { data: session } = useSession();
   const name = session?.user?.name || "User";
   const image = session?.user?.image || "";
@@ -41,7 +43,7 @@ export default function ClientTopBar() {
             className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-slate-200/70 bg-slate-50"
           >
             {image ? (
-              <Image src={image} alt="" width={44} height={44} referrerPolicy="no-referrer" className="h-full w-full object-cover" unoptimized />
+              <Image src={image} alt={name} width={44} height={44} referrerPolicy="no-referrer" className="h-full w-full object-cover" unoptimized />
             ) : (
               <span className="text-base font-black uppercase text-[#217044]">{name.trim().charAt(0)}</span>
             )}
@@ -51,7 +53,10 @@ export default function ClientTopBar() {
             type="button"
             variant="ghost"
             size="icon"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => {
+              queryClient.clear();
+              void signOut({ callbackUrl: "/login" });
+            }}
             aria-label="Log out"
             className="rounded-full bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600"
           >

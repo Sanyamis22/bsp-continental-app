@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { FiBell, FiLogOut, FiMenu, FiSearch, FiShield } from "react-icons/fi";
 import { ADMIN_NAV } from "@/components/super-admin/nav";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ import { useAdminLogout } from "@/hooks/queries";
 /** Fixed header of the super admin panel: logo, request search, alerts, logout. Login page has none of this. */
 export default function SuperAdminTopBar() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const adminLogout = useAdminLogout();
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -36,6 +38,7 @@ export default function SuperAdminTopBar() {
     try {
       await adminLogout.mutateAsync();
     } finally {
+      queryClient.clear();
       // Full navigation so every cached admin view is dropped with the cookie.
       window.location.replace("/admin/login");
     }

@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAdmin, requireAdmin, requireUser } from "@/lib/auth/guards";
+import { requireAdmin, requireUser } from "@/lib/auth/guards";
 import { errorResponse } from "@/lib/errors";
 import { createRequestSchema, documentSchema, objectIdSchema, parseBody } from "@/lib/validation";
 import { RequestService } from "@/services/RequestService";
 import { REQUEST_STATUSES } from "@/types/request";
 
-// GET: admins see everything (optionally filtered by ?email); users only ever see their own requests.
+// GET: `?scope=admin` requires admin JWT and returns the full queue.
+// Default (client) always uses the user session — an admin cookie alone cannot widen it.
 export async function GET(req: Request) {
   try {
-    if (await getAdmin()) {
-      const email = new URL(req.url).searchParams.get("email");
+    const url = new URL(req.url);
+    if (url.searchParams.get("scope") === "admin") {
+      await requireAdmin();
+      const email = url.searchParams.get("email");
       const filter = email && email !== "null" && email !== "undefined" ? email : undefined;
       return NextResponse.json({ success: true, data: await RequestService.listForAdmin(filter) });
     }

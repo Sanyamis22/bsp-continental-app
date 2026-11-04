@@ -93,17 +93,19 @@ export default function CreditScoreManagementPage() {
     setSuccessMsg('');
 
     try {
-      const uploadedDocs = await Promise.all([
-        uploadFileToS3(aadhaarFront, 'Aadhaar Card Front'),
-        uploadFileToS3(aadhaarBack, 'Aadhaar Card Back'),
-        uploadFileToS3(panCardFile, 'PAN Card Front'),
-      ]);
-
-      const validDocs = uploadedDocs.filter(Boolean);
+      // Sequential: one shared useUploadFile mutation must not run concurrent mutateAsync.
+      const uploadedDocs = [];
+      for (const [file, label] of [
+        [aadhaarFront, "Aadhaar Card Front"],
+        [aadhaarBack, "Aadhaar Card Back"],
+        [panCardFile, "PAN Card Front"],
+      ] as const) {
+        const doc = await uploadFileToS3(file, label);
+        if (doc) uploadedDocs.push(doc);
+      }
 
       await createRequest.mutateAsync({
         userName: formData.fullName || session?.user?.name || "Verified Applicant",
-        userEmail: session?.user?.email ?? undefined,
         userPhone: formData.phone,
         serviceType: "CIBIL Audit",
         details: {
@@ -112,8 +114,7 @@ export default function CreditScoreManagementPage() {
           selectedServices: selectedServices,
           customMessage: formData.customMessage,
         },
-        documentsList: validDocs.filter((d): d is NonNullable<typeof d> => Boolean(d)),
-        status: "Pending",
+        documentsList: uploadedDocs,
       });
       setSuccessMsg("Your Credit Score Application has been successfully submitted! Redirecting...");
       setTimeout(() => router.push("/dashboard/my-requests"), 2000);

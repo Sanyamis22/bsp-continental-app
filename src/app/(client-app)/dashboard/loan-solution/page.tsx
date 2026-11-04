@@ -37,6 +37,7 @@ export default function LoanSolutionPage() {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
     const mapped = files.map(file => ({
+      clientId: crypto.randomUUID(),
       name: file.name,
       size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
       fileObject: file
@@ -45,8 +46,8 @@ export default function LoanSolutionPage() {
     e.target.value = ''; 
   };
 
-  const removeFileFromQueue = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  const removeFileFromQueue = (clientId: string) => {
+    setSelectedFiles(prev => prev.filter((f) => f.clientId !== clientId));
   };
 
   const handleLoanSubmit = async (e: React.FormEvent) => {
@@ -80,9 +81,14 @@ export default function LoanSolutionPage() {
 
     // 2. Central API Store (/api/requests)
     try {
+      if (!session?.user?.email) {
+        setIsSubmitting(false);
+        setSubmitStatus({ success: false, msg: "Please login to submit your request." });
+        return;
+      }
+
       await createRequest.mutateAsync({
-        userName: formData.applicantName || session?.user?.name || "Anonymous Applicant",
-        userEmail: session?.user?.email || "user@cginfrax.com",
+        userName: formData.applicantName || session.user.name || "Anonymous Applicant",
         userPhone: formData.userPhone,
         serviceType: "Loan Rejection Solution",
         details: {
@@ -93,7 +99,6 @@ export default function LoanSolutionPage() {
           customMessage: formData.customMessage,
         },
         documentsList: finalUploadedUrls,
-        status: "Pending",
       });
 
       setIsSubmitting(false);
@@ -175,10 +180,10 @@ export default function LoanSolutionPage() {
 
               {selectedFiles.length > 0 && (
                 <div className="space-y-2 max-h-[140px] overflow-y-auto">
-                  {selectedFiles.map((file, idx) => (
-                    <div key={`${file.name}-${file.size}-${idx}`} className="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl flex items-center justify-between text-xs font-bold">
+                  {selectedFiles.map((file) => (
+                    <div key={file.clientId} className="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl flex items-center justify-between text-xs font-bold">
                       <span className="truncate max-w-[120px]">{file.name}</span>
-                      <button type="button" aria-label="Remove file" onClick={() => removeFileFromQueue(idx)} className="text-rose-600"><FiX /></button>
+                      <button type="button" aria-label="Remove file" onClick={() => removeFileFromQueue(file.clientId!)} className="text-rose-600"><FiX /></button>
                     </div>
                   ))}
                 </div>
