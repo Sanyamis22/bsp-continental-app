@@ -2,6 +2,12 @@ import connectDB from "@/lib/db";
 import User from "@/models/User";
 
 export const UserRepository = {
+  /** Directory view for admins. The password hash is never selected. */
+  async listForAdmin() {
+    await connectDB();
+    return User.find({}, "name email phone role createdAt").sort({ createdAt: -1 }).lean();
+  },
+
   async findByPhone(phone: string) {
     await connectDB();
     return User.findOne({ phone });
