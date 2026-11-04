@@ -51,11 +51,6 @@ export interface RequestDTO {
   status: RequestStatus | string;
   adminReply?: AdminReplyDTO;
   remarks?: string;
-  // ponytail: legacy field names read by the old admin dashboard — drop once API shape is unified.
-  clientName?: string;
-  mobileNumber?: string;
-  email?: string;
-  metaDataLogs?: unknown;
   approvedAt?: string;
   rejectedAt?: string;
   createdAt: string;

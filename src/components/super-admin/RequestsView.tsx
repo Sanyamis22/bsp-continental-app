@@ -11,6 +11,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,13 +29,20 @@ async function fetchRequests(): Promise<RequestDTO[]> {
   return result.data || [];
 }
 
-export default function RequestsView({ initialStatus }: { initialStatus: RequestStatus }) {
+interface RequestsViewProps {
+  initialStatus: RequestStatus;
+  initialService: string;
+  initialQuery: string;
+}
+
+export default function RequestsView({ initialStatus, initialService, initialQuery }: RequestsViewProps) {
   const [allRequests, setAllRequests] = useState<RequestDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [currentStatusTab, setCurrentStatusTab] = useState<string>(initialStatus);
-  const [serviceFilter, setServiceFilter] = useState('ALL');
+  const [serviceFilter, setServiceFilter] = useState(initialService);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   const [activeRequest, setActiveRequest] = useState<RequestDTO | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
@@ -126,7 +134,11 @@ export default function RequestsView({ initialStatus }: { initialStatus: Request
   const displayedRequests = allRequests.filter((req) => {
     const matchesStatus = (req.status || 'Pending') === currentStatusTab;
     const matchesService = serviceFilter === 'ALL' || req.serviceType === serviceFilter;
-    return matchesStatus && matchesService;
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      [req.userName, req.userPhone, req.userEmail, req._id].some((v) => v?.toLowerCase().includes(q));
+    return matchesStatus && matchesService && matchesSearch;
   });
 
   const countByStatus = (statusName: string) => allRequests.filter((r) => (r.status || 'Pending') === statusName).length;
@@ -187,6 +199,7 @@ export default function RequestsView({ initialStatus }: { initialStatus: Request
         <p className="text-sm text-muted-foreground">
           Showing <strong className="text-foreground">{displayedRequests.length}</strong> in {currentStatusTab}
         </p>
+        <Input type="search" aria-label="Search requests" placeholder="Search name, phone, email or ID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:max-w-xs" />
         <NativeSelect aria-label="Filter by service" value={serviceFilter} onChange={(e) => setServiceFilter(e.target.value)} className="w-full sm:w-64">
           <option value="ALL">All services</option>
           {SERVICE_TYPES.map((type) => (

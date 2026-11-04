@@ -5,27 +5,9 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSuperAdminSidebar } from "@/stores/sidebar";
-import { 
-  LayoutDashboard,
-  Inbox, 
-  Users, 
-  CheckCircle2, 
-  XCircle, 
-  ChevronLeft, 
-  ChevronRight,
-  ShieldCheck,
-  IndianRupee
-} from "lucide-react";
+import { ADMIN_NAV } from "@/components/super-admin/nav";
+import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 
-// Admin Menu List (Added Leads page)
-const adminMenus = [
-  { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { title: "Requests", href: "/admin/dashboard/requests", icon: Inbox },
-  { title: "Leads", href: "/admin/dashboard/leads", icon: Users },
-  { title: "Approved", href: "/admin/dashboard/requests?status=Approved", icon: CheckCircle2 },
-  { title: "Rejected", href: "/admin/dashboard/requests?status=Rejected", icon: XCircle },
-  { title: "Pricing", href: "/admin/dashboard/pricing", icon: IndianRupee },
-];
 
 /** Reads ?status= (needs a Suspense boundary); the inner view also renders server-side without it. */
 export default function SuperAdminSidebar() {
@@ -77,7 +59,7 @@ export function SuperAdminSidebarView({ currentStatus }: { currentStatus: string
 
           {/* Navigation Links */}
           <nav className="flex flex-col gap-1.5 pt-2">
-            {adminMenus.map((item) => {
+            {ADMIN_NAV.map((item) => {
               const isActive = isItemActive(item.href);
               const IconComponent = item.icon;
 
@@ -133,7 +115,7 @@ export function SuperAdminSidebarView({ currentStatus }: { currentStatus: string
       <div className="block md:hidden fixed bottom-0 left-0 right-0 z-50 w-full px-2 pb-2">
         <div className="relative flex items-center justify-around bg-white/95 backdrop-blur-xl border border-slate-200 px-1 py-2 rounded-2xl shadow-2xl">
           
-          {adminMenus.map((item) => {
+          {ADMIN_NAV.map((item) => {
             const isActive = isItemActive(item.href);
             const IconComponent = item.icon;
 
