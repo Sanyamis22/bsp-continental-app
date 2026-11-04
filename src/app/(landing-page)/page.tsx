@@ -1,7 +1,4 @@
-"use client";
-
 import HomeSection from "@/components/landing-page/HomeSection";
-import AboutSection from "@/components/landing-page/AboutSection";
 import ServicesSection from "@/components/landing-page/ServicesSection";
 import HowItWorksSection from "@/components/landing-page/HowItWorksSection";
 import WhyChooseSection from "@/components/landing-page/WhyChooseSection";
@@ -14,14 +11,13 @@ export default function LandingPage() {
   return (
     <div className="w-full bg-[#0A2615] selection:bg-[#217044] selection:text-white m-0 p-0 overflow-x-hidden">
       {/* Main Content */}
-      <main className="w-full m-0 p-0 block bg-white">
+      <div className="block w-full bg-white">
         <HomeSection />
-        <AboutSection />
         <ServicesSection />
         <HowItWorksSection />
         <WhyChooseSection />
         <ContactSection />
-      </main>
+      </div>
 
 
       {/* Floating WhatsApp Button */}

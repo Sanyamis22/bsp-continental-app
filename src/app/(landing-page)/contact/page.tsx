@@ -1,78 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
 import Link from "next/link";
 import { 
   FiArrowRight, 
   FiPhone, 
   FiMail, 
   FiMapPin, 
-  FiClock, 
-  FiCheckCircle,
-  FiAlertCircle
+  FiClock,
+  FiCheckCircle
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
-import { errorMessage as toErrorMessage } from "@/types/api";
+import ContactForm from "@/components/landing-page/ContactForm";
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    mobileNumber: "",
-    serviceRequired: "",
-    cityDistrict: "",
-    preferredContact: "",
-    message: "",
-    agreeToContact: false,
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage("");
-
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to submit contact request.");
-      }
-
-      setSubmitted(true);
-      setFormData({
-        fullName: "",
-        mobileNumber: "",
-        serviceRequired: "",
-        cityDistrict: "",
-        preferredContact: "",
-        message: "",
-        agreeToContact: false,
-      });
-    } catch (err) {
-      setErrorMessage(toErrorMessage(err) || "Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 select-none antialiased">
       
@@ -200,170 +140,7 @@ export default function ContactPage() {
                   </p>
                 </div>
 
-                {submitted ? (
-                  <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
-                    <div className="w-12 h-12 bg-[#052516] text-[#f3c251] rounded-full flex items-center justify-center mx-auto text-xl">
-                      <FiCheckCircle />
-                    </div>
-                    <h4 className="text-base font-black text-[#0F1E11] uppercase tracking-tight">
-                      Consultation Request Received
-                    </h4>
-                    <p className="text-xs text-slate-600 font-medium max-w-sm mx-auto leading-relaxed">
-                      Thank you for contacting BSP Continental. Our advisory team will review your requirement and reach out via your preferred channel.
-                    </p>
-                    <button
-                      onClick={() => setSubmitted(false)}
-                      className="text-xs font-bold text-[#052516] underline pt-2 cursor-pointer"
-                    >
-                      Submit another inquiry
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-3">
-                    
-                    {/* Row 1: Full Name & Mobile */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 block">
-                          FULL NAME *
-                        </label>
-                        <input
-                          type="text"
-                          name="fullName"
-                          required
-                          placeholder="Enter your name"
-                          value={formData.fullName}
-                          onChange={handleChange}
-                          className="w-full px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#052516] transition-colors"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 block">
-                          MOBILE NUMBER *
-                        </label>
-                        <input
-                          type="tel"
-                          name="mobileNumber"
-                          required
-                          placeholder="Enter 10-digit number"
-                          value={formData.mobileNumber}
-                          onChange={handleChange}
-                          className="w-full px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#052516] transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Row 2: Service Required */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 block">
-                        SERVICE REQUIRED *
-                      </label>
-                      <select
-                        name="serviceRequired"
-                        required
-                        value={formData.serviceRequired}
-                        onChange={handleChange}
-                        className="w-full px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-slate-200 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-[#052516] transition-colors cursor-pointer"
-                      >
-                        <option value="" disabled>Select a service</option>
-                        <option value="Financial Consulting">Financial Consulting</option>
-                        <option value="CIBIL Score Management">CIBIL Score Management</option>
-                        <option value="Property Compliance">Property Compliance &amp; Title Search</option>
-                      </select>
-                    </div>
-
-                    {/* Row 3: City & Preferred Contact */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 block">
-                          CITY / DISTRICT *
-                        </label>
-                        <input
-                          type="text"
-                          name="cityDistrict"
-                          required
-                          placeholder="Your location"
-                          value={formData.cityDistrict}
-                          onChange={handleChange}
-                          className="w-full px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#052516] transition-colors"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 block">
-                          PREFERRED CONTACT
-                        </label>
-                        <select
-                          name="preferredContact"
-                          value={formData.preferredContact}
-                          onChange={handleChange}
-                          className="w-full px-3.5 py-2.5 bg-[#F8FAFC] rounded-lg border border-slate-200 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-[#052516] transition-colors cursor-pointer"
-                        >
-                          <option value="">Call or WhatsApp</option>
-                          <option value="call">Phone Call</option>
-                          <option value="whatsapp">WhatsApp</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Row 4: Message */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 block">
-                        MESSAGE
-                      </label>
-                      <textarea
-                        name="message"
-                        rows={2}
-                        placeholder="Briefly describe your requirement"
-                        value={formData.message}
-                        onChange={handleChange}
-                        className="w-full px-3.5 py-2 bg-[#F8FAFC] rounded-lg border border-slate-200 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#052516] transition-colors resize-none"
-                      />
-                    </div>
-
-                    {/* Checkbox */}
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <input
-                        type="checkbox"
-                        id="agreeToContact"
-                        name="agreeToContact"
-                        required
-                        checked={formData.agreeToContact}
-                        onChange={handleChange}
-                        className="w-3.5 h-3.5 rounded border-slate-300 text-[#052516] focus:ring-0 cursor-pointer"
-                      />
-                      <label htmlFor="agreeToContact" className="text-[11px] font-medium text-slate-600 cursor-pointer select-none">
-                        I agree to be contacted regarding this inquiry.
-                      </label>
-                    </div>
-
-                    {/* Error Alert */}
-                    {errorMessage && (
-                      <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2 text-rose-700 text-xs font-semibold">
-                        <FiAlertCircle className="shrink-0" />
-                        <span>{errorMessage}</span>
-                      </div>
-                    )}
-
-                    {/* Submit Button */}
-                    <div className="pt-1">
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-6 py-3 bg-[#0A3D24] hover:bg-[#052516] text-white text-[11px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm active:scale-98 cursor-pointer disabled:opacity-60"
-                      >
-                        {loading ? "SUBMITTING..." : "SUBMIT REQUIREMENT"}
-                      </button>
-                    </div>
-
-                    {/* Privacy Disclaimer */}
-                    <p className="text-[10px] text-slate-400 font-medium">
-                      Do not submit sensitive identification numbers, banking credentials, or proprietary credit reports through this public form.
-                    </p>
-
-                  </form>
-                )}
+                <ContactForm />
 
               </div>
             </div>

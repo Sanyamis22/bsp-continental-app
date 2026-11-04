@@ -20,6 +20,10 @@ import {
 } from "react-icons/fi";
 import { errorMessage } from "@/types/api";
 import { formatInr, useServicePrices } from "@/hooks/useServicePrices";
+import InquiryDialog from "@/components/landing-page/InquiryDialog";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const servicesInclude = [
   "Loan Eligibility Assessment",
@@ -227,13 +231,9 @@ export default function FinancialConsultingPage() {
           </p>
 
           <div className="pt-2">
-            <button
-              type="button"
-              onClick={handleOpenConsultation}
-              className="inline-flex items-center justify-center px-8 py-4 bg-[#f3c251] hover:bg-[#e4b443] text-[#052516] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
-            >
+            <Button type="button" size="lg" variant="accent" onClick={handleOpenConsultation} className="uppercase tracking-wider">
               START CONSULTATION
-            </button>
+            </Button>
           </div>
         </div>
       </section>
@@ -261,7 +261,7 @@ export default function FinancialConsultingPage() {
             </span>
             <div className="space-y-3 text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
               <p>
-                We assist business owners to obtaining secured financing from Banks, NBFCs, and Financial Institutions. Our experts analyse the client's financial profile and recommend the most suitable lending options with competitive terms.
+                We assist business owners to obtaining secured financing from Banks, NBFCs, and Financial Institutions. Our experts analyse the client&apos;s financial profile and recommend the most suitable lending options with competitive terms.
               </p>
               <p>
                 Many loan applications fail due to poor financial planning. Our Financial Consulting and Loan Readiness Program prepares borrowers to become lender-ready by improving eligibility, restructuring liabilities, and strengthening financial documentation.
@@ -333,14 +333,10 @@ export default function FinancialConsultingPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenConsultation}
-            className="w-full py-4 px-8 bg-[#217044] hover:bg-[#164e2e] text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-          >
+          <Button type="button" size="lg" onClick={handleOpenConsultation} className="w-full uppercase tracking-wider">
             <span>PROCEED FOR CONSULTATION</span>
             <FiArrowRight size={16} />
-          </button>
+          </Button>
 
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-medium">
             <FiLock className="text-xs text-[#217044]" />
@@ -368,7 +364,7 @@ export default function FinancialConsultingPage() {
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link
               href="/contact"
-              className="px-7 py-3 bg-[#f3c251] hover:bg-[#e4b443] text-[#052516] text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center cursor-pointer"
+              className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider text-center")}
             >
               REQUEST A CONSULTATION
             </Link>
@@ -391,116 +387,21 @@ export default function FinancialConsultingPage() {
         </div>
       </section>
 
-      {/* ─── 4. INQUIRY MODAL (Triggers Razorpay Gateway Popup) ─── */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-            
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#217044] block">
-                  CONSULTATION INQUIRY
-                </span>
-                <h3 className="text-lg font-black uppercase text-[#052516]">
-                  Financial Advisory Details Form
-                </h3>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all cursor-pointer"
-              >
-                <FiX size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleInquirySubmit} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <FiUser className="text-[#217044]" /> Full Name *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  placeholder="e.g. Ramesh Chandra"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#FAFBFD] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-emerald-50/40 transition-all ring-1 ring-slate-200 focus:ring-[#217044]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <FiPhone className="text-[#217044]" /> Contact Phone *
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  required
-                  placeholder="+91 95750 00000"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#FAFBFD] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-emerald-50/40 transition-all font-mono ring-1 ring-slate-200 focus:ring-[#217044]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <FiMail className="text-[#217044]" /> Email Address *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  placeholder="client@gmail.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#FAFBFD] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-emerald-50/40 transition-all ring-1 ring-slate-200 focus:ring-[#217044]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
-                    Financial Query / Loan Details (Max 100 Characters) *
-                  </label>
-                  <span className={`text-[10px] font-mono font-bold ${
-                    formData.message.length === 100 ? "text-rose-600" : "text-slate-400"
-                  }`}>
-                    {formData.message.length}/100
-                  </span>
-                </div>
-                <textarea
-                  name="message"
-                  required
-                  rows={2}
-                  maxLength={100}
-                  placeholder="Mention loan amount required, property collateral, or business details..."
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="w-full p-3 rounded-xl bg-[#FAFBFD] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-emerald-50/40 transition-all resize-none ring-1 ring-slate-200 focus:ring-[#217044]"
-                />
-              </div>
-
-              {statusMessage && (
-                <p className="text-[11px] font-mono text-center text-amber-800 bg-amber-50 p-2 rounded-lg">
-                  {statusMessage}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 bg-[#217044] hover:bg-[#164e2e] text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-              >
-                <FiSend size={15} />
-                <span>{loading ? "INITIALIZING PAYMENT..." : `SUBMIT & PAY ${prices?.["financial-consulting"] !== undefined ? formatInr(prices["financial-consulting"]) : "..."}`}</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      <InquiryDialog
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title="Financial Advisory Details Form"
+        nameLabel="Full Name"
+        messageLabel="Financial Query / Loan Details"
+        messagePlaceholder="Mention loan amount required, property collateral, or business details..."
+        values={formData}
+        onChange={handleChange}
+        onSubmit={handleInquirySubmit}
+        loading={loading}
+        statusMessage={statusMessage}
+        loadingLabel="INITIALIZING PAYMENT..."
+        submitLabel={`SUBMIT & PAY ${prices?.["financial-consulting"] !== undefined ? formatInr(prices["financial-consulting"]) : "..."}`}
+      />
 
     </main>
   );

@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { 
   FiArrowRight, 
   FiCheckCircle, 
@@ -41,7 +43,7 @@ function ClarityCtaBanner() {
         <div className="flex flex-wrap items-center gap-4 pt-2">
           <Link
             href="/contact"
-            className="px-8 py-3.5 bg-[#f3c251] hover:bg-[#e4b443] text-[#052516] text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center cursor-pointer"
+            className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider text-center")}
           >
             REQUEST A CONSULTATION
           </Link>
@@ -385,7 +387,7 @@ export default function ServicesCombinedSection() {
               <div className="pt-2 flex flex-wrap gap-4 items-center">
                 <a
                   href="#services-grid"
-                  className="inline-flex items-center justify-center px-8 py-3.5 bg-[#f3c251] hover:bg-[#e5b33d] text-[#052516] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center cursor-pointer"
+                  className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider text-center")}
                 >
                   EXPLORE SERVICES
                 </a>

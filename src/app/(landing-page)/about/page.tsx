@@ -2,6 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { 
   FiArrowRight, 
   FiCheckCircle, 
@@ -231,7 +233,7 @@ export default function AboutPage() {
           </div>
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center px-7 py-3.5 bg-[#217044] hover:bg-[#164e2e] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-sm active:scale-95 shrink-0"
+            className={cn(buttonVariants({ variant: "default", size: "lg" }), "uppercase tracking-wider shrink-0")}
           >
             Contact Desk
           </Link>

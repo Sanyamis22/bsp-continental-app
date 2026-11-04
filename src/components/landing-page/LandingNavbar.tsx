@@ -7,6 +7,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { 
   FiHome, 
   FiInfo, 
@@ -261,8 +263,7 @@ export default function Navbar() {
             {!isLoggedIn && (
               <Link
                 href="/login"
-                className="hidden md:flex items-center gap-1.5 px-6 py-3 rounded-full text-white font-black text-xs uppercase tracking-wider transition-all active:scale-95 shadow-xs cursor-pointer"
-                style={{ backgroundColor: brandColor }}
+                className={cn(buttonVariants(), "hidden rounded-full px-6 uppercase tracking-wider md:inline-flex")}
               >
                 <FiLogIn size={14} />
                 Login
@@ -386,7 +387,7 @@ export default function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setIsOpen(false)}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-[#217044] text-white font-black text-xs uppercase tracking-wider active:scale-95 shadow-sm"
+                    className={cn(buttonVariants({ size: "lg" }), "w-full uppercase tracking-wider")}
                   >
                     <FiLogIn size={15} />
                     Client Login

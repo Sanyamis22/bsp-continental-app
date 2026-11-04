@@ -17,6 +17,10 @@ import {
   FiCheck
 } from "react-icons/fi";
 import { errorMessage } from "@/types/api";
+import InquiryDialog from "@/components/landing-page/InquiryDialog";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const cibilServices = [
   {
@@ -295,14 +299,10 @@ export default function CibilManagementPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenConsultation}
-            className="w-full py-4 px-8 bg-[#217044] hover:bg-[#164e2e] text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-          >
+          <Button type="button" size="lg" onClick={handleOpenConsultation} className="w-full uppercase tracking-wider">
             <span>PROCEED FOR CONSULTATION</span>
             <FiArrowRight size={16} />
-          </button>
+          </Button>
 
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-medium">
             <FiLock className="text-xs text-[#217044]" />
@@ -328,7 +328,7 @@ export default function CibilManagementPage() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Link className="px-7 py-3 bg-[#f3c251] hover:bg-[#e4b443] text-[#052516] text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center cursor-pointer" href="/contact">
+            <Link className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider text-center")} href="/contact">
               REQUEST A CONSULTATION
             </Link>
             <a
@@ -350,120 +350,21 @@ export default function CibilManagementPage() {
         </div>
       </section>
 
-      {/* ─── 4. INQUIRY MODAL ─── */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-            
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#217044] block">
-                  CONSULTATION INQUIRY
-                </span>
-                <h3 className="text-lg font-black uppercase text-[#052516]">
-                  Credit Profile Diagnostics Form
-                </h3>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all cursor-pointer"
-              >
-                <FiX size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleInquiryAndPay} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <FiUser className="text-[#217044]" /> Full Name (As per PAN) *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  placeholder="e.g. Ramesh Chandra"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#FAFBFD] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-emerald-50/40 transition-all ring-1 ring-slate-200 focus:ring-[#217044]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <FiPhone className="text-[#217044]" /> Contact Phone *
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  required
-                  placeholder="+91 95750 00000"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#FAFBFD] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-emerald-50/40 transition-all font-mono ring-1 ring-slate-200 focus:ring-[#217044]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <FiMail className="text-[#217044]" /> Gmail Address *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  placeholder="client@gmail.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#FAFBFD] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-emerald-50/40 transition-all ring-1 ring-slate-200 focus:ring-[#217044]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
-                    Brief of Credit Issue / Discrepancy (Max 100 Characters) *
-                  </label>
-                  <span className={`text-[10px] font-mono font-bold ${
-                    formData.message.length === 100 ? "text-rose-600" : "text-slate-400"
-                  }`}>
-                    {formData.message.length}/100
-                  </span>
-                </div>
-                <textarea
-                  name="message"
-                  required
-                  rows={2}
-                  maxLength={100}
-                  placeholder="Mention ongoing disputes, closed loan NOC pending or overdue marks..."
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="w-full p-3 rounded-xl bg-[#FAFBFD] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-emerald-50/40 transition-all resize-none ring-1 ring-slate-200 focus:ring-[#217044]"
-                />
-              </div>
-
-              {statusMessage && (
-                <p className="text-[11px] font-mono text-center text-amber-800 bg-amber-50 p-2 rounded-lg">
-                  {statusMessage}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 bg-[#217044] hover:bg-[#164e2e] text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-              >
-                <FiSend size={15} />
-                <span>{loading ? "PROCESSING..." : "SUBMIT & PROCEED TO PAY"}</span>
-              </button>
-
-              <p className="text-[10px] text-slate-400 text-center flex items-center justify-center gap-1">
-                <FiLock className="text-xs" /> Secure 256-bit encrypted Razorpay Checkout
-              </p>
-            </form>
-          </div>
-        </div>
-      )}
+      <InquiryDialog
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title="Credit Profile Diagnostics Form"
+        nameLabel="Full Name (As per PAN)"
+        messageLabel="Brief of Credit Issue / Discrepancy"
+        messagePlaceholder="Mention ongoing disputes, closed loan NOC pending or overdue marks..."
+        values={formData}
+        onChange={handleChange}
+        onSubmit={handleInquiryAndPay}
+        loading={loading}
+        statusMessage={statusMessage}
+        loadingLabel="PROCESSING..."
+        submitLabel={"SUBMIT & PROCEED TO PAY"}
+      />
 
     </main>
   );

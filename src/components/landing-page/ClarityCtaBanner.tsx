@@ -3,6 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function ClarityCtaBanner({
   tag = "READY FOR THE NEXT STEP?",
@@ -44,7 +46,7 @@ export default function ClarityCtaBanner({
         <div className="flex flex-wrap items-center gap-4 pt-2">
           <Link
             href={primaryBtnHref}
-            className="px-8 py-3.5 bg-[#f3c251] hover:bg-[#e4b443] text-[#052313] text-xs font-black uppercase tracking-wider rounded-lg transition-all shadow-md active:scale-95 text-center cursor-pointer"
+            className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider text-center")}
           >
             {primaryBtnText}
           </Link>

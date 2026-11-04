@@ -3,6 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { FiShield, FiLock, FiCheckSquare } from "react-icons/fi";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -148,7 +150,7 @@ export default function PrivacyPolicyPage() {
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
                 href="/contact"
-                className="px-8 py-3.5 bg-[#f3c251] hover:bg-[#e4b443] text-[#052516] text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center cursor-pointer"
+                className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider text-center")}
               >
                 REQUEST A CONSULTATION
               </Link>

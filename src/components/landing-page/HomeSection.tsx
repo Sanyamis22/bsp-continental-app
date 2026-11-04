@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const slides = [
   {
@@ -44,16 +46,17 @@ const slides = [
 export default function HomeSection() {
   const [current, setCurrent] = useState(0);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      handleNext();
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [current]);
-
   const handleNext = () => {
     setCurrent((prev) => (prev + 1) % slides.length);
   };
+
+  // Restarts the 6s timer whenever the slide changes (including manual prev/next).
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % slides.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [current]);
 
   const handlePrev = () => {
     setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
@@ -142,14 +145,14 @@ export default function HomeSection() {
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-1 sm:pt-2">
                 <Link
                   href={slide.primaryBtn.href}
-                  className="px-6 sm:px-8 py-3 sm:py-3.5 bg-[#f3c251] hover:bg-[#e4b443] text-[#062415] text-[11px] sm:text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center"
+                  className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider text-center")}
                 >
                   {slide.primaryBtn.text}
                 </Link>
 
                 <Link
                   href={slide.secondaryBtn.href}
-                  className="px-6 sm:px-8 py-3 sm:py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/40 hover:border-white text-[11px] sm:text-xs font-black uppercase tracking-wider rounded-xl transition-all active:scale-95 text-center backdrop-blur-xs"
+                  className={cn(buttonVariants({ variant: "outline", size: "lg" }), "border-white/40 bg-white/10 text-white backdrop-blur-xs hover:border-white hover:bg-white/20 hover:text-white uppercase tracking-wider text-center")}
                 >
                   {slide.secondaryBtn.text}
                 </Link>

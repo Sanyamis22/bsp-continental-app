@@ -13,6 +13,8 @@ import {
   FiDollarSign
 } from "react-icons/fi";
 import ServicePrice from "@/components/landing-page/ServicePrice";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 // ─── 3 CORE SERVICES ───
 const services = [
@@ -217,7 +219,7 @@ export default function ServicesCombinedSection() {
               <div className="pt-8">
                 <Link
                   href="/services/property-compliance"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-[#f3c251] hover:bg-[#e5b33d] text-[#052516] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center"
+                  className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider w-full text-center")}
                 >
                   <span>INQUIRY NOW</span>
                   <FiArrowRight className="text-sm" />
@@ -250,7 +252,7 @@ export default function ServicesCombinedSection() {
               <div className="pt-8">
                 <Link
                   href="/services/cibil-management"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-[#f3c251] hover:bg-[#e5b33d] text-[#052516] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center"
+                  className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider w-full text-center")}
                 >
                   <span>INQUIRY NOW</span>
                   <FiArrowRight className="text-sm" />
@@ -283,7 +285,7 @@ export default function ServicesCombinedSection() {
               <div className="pt-8">
                 <Link
                   href="/services/financial-consulting"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-[#f3c251] hover:bg-[#e5b33d] text-[#052516] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center"
+                  className={cn(buttonVariants({ variant: "accent", size: "lg" }), "uppercase tracking-wider w-full text-center")}
                 >
                   <span>INQUIRY NOW</span>
                   <FiArrowRight className="text-sm" />

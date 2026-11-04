@@ -4,6 +4,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const steps = [
   {
@@ -144,7 +146,7 @@ export default function HowItWorksSection() {
         <div className="pt-8 border-t border-slate-100 flex items-center justify-start">
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center px-8 py-4 bg-[#0A2615] hover:bg-[#217044] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 text-center"
+            className={cn(buttonVariants({ variant: "default", size: "lg" }), "uppercase tracking-wider text-center")}
           >
             REQUEST A CONSULTATION
           </Link>
