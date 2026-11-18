@@ -171,6 +171,7 @@ export default function CibilManagementPage() {
             alt="CIBIL Score Management"
             fill
             priority
+            sizes="100vw"
             className="object-cover object-right"
           />
         </div>

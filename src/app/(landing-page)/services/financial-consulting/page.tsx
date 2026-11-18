@@ -193,6 +193,7 @@ export default function FinancialConsultingPage() {
             alt="Financial Consultancy"
             fill
             priority
+            sizes="100vw"
             className="object-cover object-right"
           />
         </div>
