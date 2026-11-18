@@ -339,6 +339,7 @@ export default function ServicesCombinedSection() {
                   alt="BSP Continental Loan Readiness & Services"
                   fill
                   priority
+                  sizes="(min-width: 640px) 420px, 100vw"
                   className="object-cover object-center transition-transform duration-500 hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#052516]/80 via-transparent to-transparent pointer-events-none" />

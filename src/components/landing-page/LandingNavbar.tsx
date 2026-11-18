@@ -260,6 +260,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <button 
               type="button"
+              aria-label="Notifications"
               className="relative w-11 h-11 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:text-[#217044] hover:bg-emerald-50 transition-all active:scale-95 cursor-pointer"
             >
               <FiBell size={20} />
@@ -279,6 +280,7 @@ export default function Navbar() {
             <button 
               type="button"
               onClick={() => router.push(isLoggedIn ? "/dashboard/profile" : "/login")}
+              aria-label={isLoggedIn ? "Open profile" : "Log in"}
               className="relative w-11 h-11 rounded-full overflow-hidden flex items-center justify-center bg-slate-50 border border-slate-200/60 transition-all active:scale-95 cursor-pointer"
             >
               {isLoggedIn ? (
@@ -290,7 +292,7 @@ export default function Navbar() {
                   </span>
                 )
               ) : (
-                <span className="text-base font-bold text-slate-400 select-none">?</span>
+                <span className="text-base font-bold text-slate-500 select-none">?</span>
               )}
             </button>
 
@@ -298,6 +300,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={logout}
+                aria-label="Log out"
                 className="hidden md:flex w-11 h-11 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-500 hover:text-rose-600 items-center justify-center transition-all active:scale-95 border border-rose-100/40 cursor-pointer"
                 title="Logout"
               >
@@ -309,6 +312,8 @@ export default function Navbar() {
             <button 
               type="button"
               onClick={() => setIsOpen(!isOpen)}
+              aria-label={isOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isOpen}
               className="md:hidden text-2xl p-2.5 text-black bg-slate-50 active:scale-90 rounded-full transition-all focus:outline-none cursor-pointer"
             >
               {isOpen ? <HiX /> : <HiMenuAlt3 />}
@@ -351,6 +356,7 @@ export default function Navbar() {
                   <button 
                     type="button"
                     onClick={() => setIsOpen(false)}
+                    aria-label="Close menu"
                     className="text-xl text-black bg-slate-50 p-1.5 rounded-full active:scale-90 cursor-pointer"
                   >
                     <HiX />
@@ -514,7 +520,7 @@ export default function Navbar() {
 
               {/* Bottom Copyright */}
               <div className="text-center pt-4 border-t border-slate-100">
-                <p className="text-[10px] text-slate-400 font-bold uppercase">
+                <p className="text-[10px] text-slate-500 font-bold uppercase">
                   © 2026 BSP CONTINENTAL
                 </p>
               </div>

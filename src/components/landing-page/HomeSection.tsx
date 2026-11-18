@@ -84,6 +84,7 @@ export default function HomeSection() {
             alt={slide.title}
             fill
             priority
+            sizes="100vw"
             className="object-cover object-[80%_center] sm:object-center lg:object-right"
           />
           {/* Readability Gradients */}
@@ -97,7 +98,7 @@ export default function HomeSection() {
           type="button"
           onClick={handlePrev}
           aria-label="Previous Slide"
-          className="pointer-events-auto w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-black/10 hover:bg-black/35 text-white/70 hover:text-white backdrop-blur-xs border border-white/10 flex items-center justify-center text-lg sm:text-xl transition-all duration-200 active:scale-90 cursor-pointer"
+          className="pointer-events-auto w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-black/10 hover:bg-black/35 text-white hover:text-white backdrop-blur-xs border border-white/10 flex items-center justify-center text-lg sm:text-xl transition-all duration-200 active:scale-90 cursor-pointer"
         >
           <FiChevronLeft />
         </button>
@@ -106,7 +107,7 @@ export default function HomeSection() {
           type="button"
           onClick={handleNext}
           aria-label="Next Slide"
-          className="pointer-events-auto w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-black/10 hover:bg-black/35 text-white/70 hover:text-white backdrop-blur-xs border border-white/10 flex items-center justify-center text-lg sm:text-xl transition-all duration-200 active:scale-90 cursor-pointer"
+          className="pointer-events-auto w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-black/10 hover:bg-black/35 text-white hover:text-white backdrop-blur-xs border border-white/10 flex items-center justify-center text-lg sm:text-xl transition-all duration-200 active:scale-90 cursor-pointer"
         >
           <FiChevronRight />
         </button>
@@ -138,7 +139,7 @@ export default function HomeSection() {
               </h1>
 
               {/* Description - Bilkul chota aur compact */}
-              <p className="text-xs sm:text-sm text-emerald-100/75 font-medium max-w-lg leading-relaxed">
+              <p className="text-xs sm:text-sm text-emerald-50 font-medium max-w-lg leading-relaxed">
                 {slide.description}
               </p>
 
