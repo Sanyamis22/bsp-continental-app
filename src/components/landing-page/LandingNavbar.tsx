@@ -258,14 +258,16 @@ export default function Navbar() {
 
           {/* Right Action Utilities */}
           <div className="flex items-center gap-3">
-            <button 
-              type="button"
-              aria-label="Notifications"
-              className="relative w-11 h-11 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:text-[#217044] hover:bg-emerald-50 transition-all active:scale-95 cursor-pointer"
-            >
-              <FiBell size={20} />
-              <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-[#217044] rounded-full ring-2 ring-white" />
-            </button>
+            {isLoggedIn && (
+              <button 
+                type="button"
+                aria-label="Notifications"
+                className="relative w-11 h-11 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:text-[#217044] hover:bg-emerald-50 transition-all active:scale-95 cursor-pointer"
+              >
+                <FiBell size={20} />
+                <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-[#217044] rounded-full ring-2 ring-white" />
+              </button>
+            )}
 
             {!isLoggedIn && (
               <Link
@@ -277,24 +279,22 @@ export default function Navbar() {
               </Link>
             )}
 
-            <button 
-              type="button"
-              onClick={() => router.push(isLoggedIn ? "/dashboard/profile" : "/login")}
-              aria-label={isLoggedIn ? "Open profile" : "Log in"}
-              className="relative w-11 h-11 rounded-full overflow-hidden flex items-center justify-center bg-slate-50 border border-slate-200/60 transition-all active:scale-95 cursor-pointer"
-            >
-              {isLoggedIn ? (
-                userImageUrl ? (
+            {isLoggedIn && (
+              <button 
+                type="button"
+                onClick={() => router.push("/dashboard/profile")}
+                aria-label="Open profile"
+                className="relative w-11 h-11 rounded-full overflow-hidden flex items-center justify-center bg-slate-50 border border-slate-200/60 transition-all active:scale-95 cursor-pointer"
+              >
+                {userImageUrl ? (
                   <Image src={userImageUrl} alt="Profile" width={44} height={44} referrerPolicy="no-referrer" className="w-full h-full object-cover" unoptimized />
                 ) : (
                   <span className="text-base font-black uppercase select-none" style={{ color: brandColor }}>
                     {userName.trim().charAt(0)}
                   </span>
-                )
-              ) : (
-                <span className="text-base font-bold text-slate-500 select-none">?</span>
-              )}
-            </button>
+                )}
+              </button>
+            )}
 
             {isLoggedIn && (
               <button
